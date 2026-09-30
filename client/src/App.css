@@ -1,0 +1,24 @@
+.app {
+  padding: 32px;
+}
+
+.app-header {
+  margin-bottom: 32px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 32px;
+  color: #111827;
+}
+
+.app-header p {
+  margin-top: 8px;
+  color: #6b7280;
+}
+
+.kpi-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
