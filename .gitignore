@@ -23,3 +23,7 @@ Thumbs.db
 
 # VS Code local settings
 .vscode/
+
+# Environment variables / secrets
+.env
+server/.env

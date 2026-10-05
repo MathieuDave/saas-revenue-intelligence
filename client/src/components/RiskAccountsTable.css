@@ -1,0 +1,294 @@
+.risk-accounts {
+  width: 100%;
+  min-width: 0;
+}
+
+/* =========================
+   FILTERS
+   ========================= */
+
+.risk-table-filters {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.4fr)
+    minmax(150px, 0.8fr)
+    minmax(180px, 1fr)
+    auto;
+  gap: 12px;
+  align-items: end;
+
+  margin-bottom: 14px;
+}
+
+.risk-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.risk-filter-group label {
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.risk-filter-group input,
+.risk-filter-group select {
+  width: 100%;
+  height: 40px;
+
+  box-sizing: border-box;
+
+  padding: 0 12px;
+
+  background: #ffffff;
+
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+
+  color: #0f172a;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.risk-filter-group input::placeholder {
+  color: #94a3b8;
+}
+
+.risk-filter-group input:focus,
+.risk-filter-group select:focus {
+  border-color: #94a3b8;
+
+  box-shadow:
+    0 0 0 3px rgba(148, 163, 184, 0.12);
+}
+
+/* =========================
+   RESET BUTTON
+   ========================= */
+
+.risk-reset-button {
+  height: 40px;
+
+  padding: 0 16px;
+
+  background: #ffffff;
+
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+
+  color: #475569;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.risk-reset-button:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* =========================
+   RESULT COUNT
+   ========================= */
+
+.risk-results-count {
+  margin-bottom: 10px;
+
+  color: #94a3b8;
+
+  font-size: 12px;
+}
+
+/* =========================
+   TABLE
+   ========================= */
+
+.risk-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.risk-accounts-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 14px;
+}
+
+.risk-accounts-table th {
+  padding: 14px;
+
+  text-align: left;
+  white-space: nowrap;
+
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.risk-accounts-table td {
+  padding: 17px 14px;
+
+  vertical-align: middle;
+
+  color: #0f172a;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.risk-accounts-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.risk-accounts-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.risk-accounts-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================
+   SORTING
+   ========================= */
+
+.risk-sort-button {
+  padding: 0;
+
+  background: transparent;
+  border: none;
+
+  color: #64748b;
+
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.risk-sort-button:hover {
+  color: #0f172a;
+}
+
+/* =========================
+   CUSTOMER / SCORE
+   ========================= */
+
+.risk-customer-name {
+  font-weight: 600;
+}
+
+.risk-score-max {
+  color: #94a3b8;
+
+  font-size: 12px;
+}
+
+/* =========================
+   RISK BADGES
+   ========================= */
+
+.risk-level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 65px;
+
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.risk-level-badge.critical {
+  color: #dc2626;
+
+  background: #fef2f2;
+
+  border: 1px solid #fecaca;
+}
+
+.risk-level-badge.high {
+  color: #ea580c;
+
+  background: #fff7ed;
+
+  border: 1px solid #fed7aa;
+}
+
+.risk-level-badge.moderate {
+  color: #b45309;
+
+  background: #fffbeb;
+
+  border: 1px solid #fde68a;
+}
+
+.risk-level-badge.low {
+  color: #15803d;
+
+  background: #f0fdf4;
+
+  border: 1px solid #bbf7d0;
+}
+
+/* =========================
+   EMPTY STATE
+   ========================= */
+
+.risk-no-results {
+  padding: 32px !important;
+
+  text-align: center;
+
+  color: #94a3b8 !important;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 1000px) {
+  .risk-table-filters {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .risk-table-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-reset-button {
+    width: 100%;
+  }
+
+  .risk-accounts-table {
+    min-width: 1100px;
+  }
+}

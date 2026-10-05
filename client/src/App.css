@@ -1,24 +1,337 @@
-.app {
+#root {
+  min-height: 100vh;
+}
+
+/* =========================================================
+   APP LAYOUT
+   ========================================================= */
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
   padding: 32px;
 }
 
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
 .app-header {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .app-header h1 {
   margin: 0;
-  font-size: 32px;
-  color: #111827;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 700;
 }
 
 .app-header p {
-  margin-top: 8px;
-  color: #6b7280;
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 15px;
 }
 
+/* =========================================================
+   OVERVIEW
+   ========================================================= */
+
 .kpi-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
-  flex-wrap: wrap;
+}
+
+/* =========================================================
+   CUSTOMER RISK
+   ========================================================= */
+
+.risk-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.risk-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.risk-charts-grid .chart-card {
+  min-width: 0;
+  margin-top: 24px;
+}
+
+/* =========================================================
+   EXPANSION
+   ========================================================= */
+
+.expansion-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.expansion-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.expansion-charts-grid .chart-card {
+  min-width: 0;
+  margin-top: 24px;
+}
+
+/* =========================================================
+   CUSTOMER 360
+   ========================================================= */
+
+.customer-header {
+  margin-bottom: 24px;
+}
+
+.customer-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.customer-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.customer-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.customer-charts-grid .chart-card {
+  min-width: 0;
+  margin-top: 24px;
+}
+
+.customer-signals-section {
+  margin-top: 32px;
+}
+
+.customer-signals-section h2 {
+  margin: 0 0 16px;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.customer-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.customer-details-grid .chart-card {
+  min-width: 0;
+  margin-top: 24px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .risk-kpi-grid,
+  .expansion-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1000px) {
+  .risk-charts-grid,
+  .expansion-charts-grid,
+  .customer-charts-grid,
+  .customer-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .main-content {
+    padding: 20px;
+  }
+
+  .kpi-grid,
+  .risk-kpi-grid,
+  .expansion-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-header h1 {
+    font-size: 24px;
+  }
+}
+
+.customer-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.customer-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 260px;
+}
+
+.customer-selector label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.customer-selector select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: white;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+}
+
+.customer-selector select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+@media (max-width: 700px) {
+  .customer-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .customer-selector {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.customer-selector input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: white;
+  color: #0f172a;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.customer-selector input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.customer-selector input::placeholder {
+  color: #94a3b8;
+}
+
+.customer-combobox {
+  position: relative;
+  width: 100%;
+}
+
+.customer-combobox input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: white;
+  color: #0f172a;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.customer-combobox input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.customer-combobox-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+
+  max-height: 320px;
+  overflow-y: auto;
+
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+}
+
+.customer-combobox-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.customer-combobox-option:last-child {
+  border-bottom: none;
+}
+
+.customer-combobox-option:hover {
+  background: #f8fafc;
+}
+
+.customer-combobox-option span {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.customer-combobox-option small {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.customer-combobox-empty {
+  padding: 12px 14px;
+  color: #64748b;
+  font-size: 14px;
 }

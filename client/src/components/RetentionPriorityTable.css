@@ -1,0 +1,282 @@
+.retention-table-container {
+  width: 100%;
+}
+
+/* =========================
+   FILTERS
+========================= */
+
+.retention-filters {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, 1.3fr)
+    minmax(130px, 0.8fr)
+    minmax(140px, 0.8fr)
+    minmax(220px, 1.4fr)
+    auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  box-sizing: border-box;
+
+  background: #ffffff;
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+
+  color: #0f172a;
+  font-size: 13px;
+
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+}
+
+.filter-group input::placeholder {
+  color: #94a3b8;
+}
+
+.reset-filters-button {
+  height: 40px;
+  padding: 0 16px;
+
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #475569;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.reset-filters-button:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.retention-results-count {
+  margin-bottom: 10px;
+
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.retention-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.retention-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.retention-table th {
+  padding: 14px 16px;
+
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.retention-table td {
+  padding: 17px 16px;
+
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+
+  vertical-align: middle;
+}
+
+.retention-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.retention-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.retention-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================
+   SORTING
+========================= */
+
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  color: #64748b;
+  font: inherit;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.sort-button span {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.sort-button:hover {
+  color: #0f172a;
+}
+
+/* =========================
+   CUSTOMER / SCORE
+========================= */
+
+.customer-name {
+  font-weight: 600;
+}
+
+.score-max {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* =========================
+   RISK BADGES
+========================= */
+
+.risk-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 68px;
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.risk-badge.critical {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.risk-badge.high {
+  color: #c2410c;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.risk-badge.moderate {
+  color: #a16207;
+  background: #fefce8;
+  border: 1px solid #fef08a;
+}
+
+.risk-badge.low {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+/* =========================
+   RENEWAL
+========================= */
+
+.renewal-urgent {
+  display: inline-flex;
+  padding: 4px 8px;
+
+  color: #b91c1c;
+  background: #fef2f2;
+
+  border-radius: 6px;
+
+  font-weight: 600;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.no-results {
+  padding: 32px !important;
+
+  text-align: center;
+  color: #94a3b8 !important;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+  .retention-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reset-filters-button {
+    width: fit-content;
+  }
+}
+
+@media (max-width: 700px) {
+  .retention-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .reset-filters-button {
+    width: 100%;
+  }
+
+  .retention-table {
+    min-width: 900px;
+  }
+}

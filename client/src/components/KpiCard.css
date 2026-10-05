@@ -1,20 +1,58 @@
 .kpi-card {
+  --accent-color: #3b82f6;
+
   background: white;
   border: 1px solid #e5e7eb;
+  border-top: 4px solid var(--accent-color);
+
   border-radius: 16px;
   padding: 20px;
-  min-width: 220px;
+
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
 }
 
 .kpi-card h3 {
-  margin: 0 0 12px 0;
+  margin: 0 0 16px;
   font-size: 14px;
-  color: #6b7280;
+  font-weight: 600;
+  color: #64748b;
 }
 
 .kpi-card p {
   margin: 0;
   font-size: 30px;
   font-weight: 700;
-  color: #111827;
+  color: #0f172a;
+}
+
+
+/* ACCENT COLORS */
+
+.kpi-card--green {
+  --accent-color: #10b981;
+}
+
+.kpi-card--blue {
+  --accent-color: #3b82f6;
+}
+
+.kpi-card--purple {
+  --accent-color: #8b5cf6;
+}
+
+.kpi-card--orange {
+  --accent-color: #f59e0b;
 }
