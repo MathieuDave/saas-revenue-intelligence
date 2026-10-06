@@ -12,14 +12,12 @@ import { createExpansionRouter } from "./routes/expansion.js";
 import { createCustomersRouter } from "./routes/customers.js";
 import genieRoutes from "./routes/genie.js";
 
-
 const app = express();
 const PORT = 3000;
 
-type DatabricksRow = Record<string, unknown>;
-
 app.use(cors());
 app.use(express.json());
+
 app.use("/api", healthRoutes);
 
 async function startServer() {
@@ -29,19 +27,17 @@ async function startServer() {
      * On ne reconnecte PAS Databricks à chaque requête.
      */
     const databricks = await connectToDatabricks();
+
     app.use("/api", createOverviewRouter(databricks));
     app.use("/api", createRevenueRouter(databricks));
     app.use("/api", createPrioritiesRouter(databricks));
     app.use("/api", createRiskRouter(databricks));
-    app.use("/api", createExpansionRouter(databricks));  
+    app.use("/api", createExpansionRouter(databricks));
     app.use("/api", createCustomersRouter(databricks));
     app.use("/api", genieRoutes);
 
-
     app.listen(PORT, () => {
-      console.log(
-        `Server running on http://localhost:${PORT}`
-      );
+      console.log(`Server running on http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error(
