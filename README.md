@@ -8,7 +8,7 @@ A full-stack SaaS Revenue Intelligence application built to help Revenue, Custom
 - Backend: Node.js + Express + TypeScript
 - Data Platform: Databricks
 - Analytics: Databricks SQL / Unity Catalog
-- AI Copilot: Databricks Genie
+- Ask RevenueAI: Databricks Genie
 - Version Control: Git + GitHub
 
 ## Application

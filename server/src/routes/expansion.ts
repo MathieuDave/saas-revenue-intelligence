@@ -85,22 +85,28 @@ export function createExpansionRouter(
           kpiRow?.expansion_priority_arr ?? 0
         );
 
-        const veryHighRow =
-          opportunityDistribution.find(
-            (row) =>
-              row.opportunityLevel === "Very High"
-          );
+      const priorityLevelRows = await executeQuery(`
+  SELECT
+    opportunity_level,
+    COUNT(*) AS accounts
+  FROM workspace.saas_revenue_intelligence.gold_customer_actions_explained
+  WHERE priority_category = 'Expansion Priority'
+  GROUP BY opportunity_level
+`);
 
-        const highOpportunityRow =
-          opportunityDistribution.find(
-            (row) => row.opportunityLevel === "High"
-          );
+const veryHighOpportunityAccounts = Number(
+  priorityLevelRows.find(
+    (row) =>
+      String(row.opportunity_level) === "Very High"
+  )?.accounts ?? 0
+);
 
-        const veryHighOpportunityAccounts =
-          veryHighRow?.accounts ?? 0;
-
-        const highOpportunityAccounts =
-          highOpportunityRow?.accounts ?? 0;
+const highOpportunityAccounts = Number(
+  priorityLevelRows.find(
+    (row) =>
+      String(row.opportunity_level) === "High"
+  )?.accounts ?? 0
+);
 
                 // -----------------------------------------------------
         // 3. PRIMARY EXPANSION DRIVERS

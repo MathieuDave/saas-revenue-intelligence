@@ -117,7 +117,7 @@ function CopilotPage() {
   return (
     <div className="copilot-page">
       <div className="app-header">
-        <h1>Revenue AI Copilot</h1>
+        <h1>Ask RevenueAI</h1>
 
         <p>
           Ask questions about revenue, customer risk,

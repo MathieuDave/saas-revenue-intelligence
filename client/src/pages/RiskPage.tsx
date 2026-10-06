@@ -8,6 +8,7 @@ import ArrByRiskChart from "../components/ArrByRiskChart";
 import RiskDriversChart from "../components/RiskDriversChart";
 import RenewalUrgencyChart from "../components/RenewalUrgencyChart";
 import RiskAccountsTable from "../components/RiskAccountsTable";
+import PageLoadingState from "../components/PageLoadingState";
 
 export type RiskLevelData = {
   riskLevel: string;
@@ -88,6 +89,17 @@ function RiskPage() {
       </div>
     );
   }
+
+  if (!data) {
+  return (
+    <PageLoadingState
+      title="Customer Risk"
+      description="Identify and prioritize accounts with elevated churn risk."
+      message="Loading customer risk data..."
+      kpiCount={4}
+    />
+  );
+}
 
   return (
     <div>

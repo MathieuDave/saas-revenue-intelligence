@@ -8,6 +8,7 @@ import ArrByOpportunityChart from "../components/ArrByOpportunityChart";
 import ExpansionDriversChart from "../components/ExpansionDriversChart";
 import PriorityAccountsByPlanChart from "../components/PriorityAccountsByPlanChart";
 import ExpansionAccountsTable from "../components/ExpansionAccountsTable";
+import PageLoadingState from "../components/PageLoadingState";
 
 /* =========================================================
    TYPES
@@ -123,21 +124,16 @@ function ExpansionPage() {
      LOADING
      ======================================================= */
 
-  if (loading) {
-    return (
-      <div>
-        <header className="app-header">
-          <h1>Expansion Opportunities</h1>
-          <p>
-            Identify customers with the strongest signals for
-            account expansion.
-          </p>
-        </header>
-
-        <p>Loading expansion data...</p>
-      </div>
-    );
-  }
+if (loading) {
+  return (
+    <PageLoadingState
+      title="Expansion Opportunities"
+      description="Identify customers with the strongest signals for account expansion."
+      message="Loading expansion data..."
+      kpiCount={4}
+    />
+  );
+}
 
   /* =======================================================
      ERROR
@@ -153,7 +149,7 @@ function ExpansionPage() {
             account expansion.
           </p>
         </header>
-
+        
         <p>{error ?? "No expansion data available."}</p>
       </div>
     );
@@ -172,6 +168,9 @@ function ExpansionPage() {
           Identify customers with the strongest signals for
           account expansion.
         </p>
+              <p className="snapshot-label">
+  Data snapshot · Aug 31, 2026
+</p>
       </header>
 
       {/* ===================================================
@@ -194,13 +193,13 @@ function ExpansionPage() {
         />
 
         <KpiCard
-          title="Very High Opportunities"
+          title="Very High Priority Opportunities"
           value={data.kpis.veryHighOpportunityAccounts.toLocaleString()}
           accent="purple"
         />
 
         <KpiCard
-          title="High Opportunities"
+          title="High Priority Opportunities"
           value={data.kpis.highOpportunityAccounts.toLocaleString()}
           accent="blue"
         />
@@ -256,6 +255,9 @@ function ExpansionPage() {
         title="Accounts with Expansion Potential"
         description="Highest-priority customer accounts based on current expansion signals"
       >
+        <p className="table-note">
+  15 accounts are tied at an Opportunity Score of 100 and are ranked by ARR.
+</p>
         <ExpansionAccountsTable
           accounts={data.accounts}
         />

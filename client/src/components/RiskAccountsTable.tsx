@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { RiskAccount } from "../pages/RiskPage";
 
@@ -15,12 +15,14 @@ type SortField =
   | "daysToRenewal";
 
 type SortDirection = "asc" | "desc";
+const ITEMS_PER_PAGE = 15;
 
 function RiskAccountsTable({ accounts }: Props) {
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("All");
   const [driverFilter, setDriverFilter] = useState("All");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  
   const [sortField, setSortField] =
     useState<SortField>("riskScore");
 
@@ -43,6 +45,7 @@ function RiskAccountsTable({ accounts }: Props) {
         .toLowerCase()
         .includes(search.toLowerCase());
 
+        
       const matchesRisk =
         riskFilter === "All" ||
         account.riskLevel === riskFilter;
@@ -83,6 +86,28 @@ function RiskAccountsTable({ accounts }: Props) {
     sortField,
     sortDirection,
   ]);
+
+  const totalPages = Math.max(
+  1,
+  Math.ceil(filteredAccounts.length / ITEMS_PER_PAGE)
+);
+
+const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+
+const paginatedAccounts = filteredAccounts.slice(
+  startIndex,
+  startIndex + ITEMS_PER_PAGE
+);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [search, riskFilter, driverFilter, sortField, sortDirection]);
+
+useEffect(() => {
+  if (currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+}, [currentPage, totalPages]);
 
   function handleSort(field: SortField) {
     if (sortField === field) {
@@ -182,9 +207,15 @@ function RiskAccountsTable({ accounts }: Props) {
       {/* RESULTS COUNT */}
 
       <div className="risk-results-count">
-        Showing {filteredAccounts.length} of{" "}
-        {accounts.length} accounts
-      </div>
+  Showing{" "}
+  {filteredAccounts.length === 0 ? 0 : startIndex + 1}
+  –
+  {Math.min(
+    startIndex + ITEMS_PER_PAGE,
+    filteredAccounts.length
+  )}{" "}
+  of {filteredAccounts.length} accounts
+</div>
 
       {/* TABLE */}
 
@@ -245,7 +276,7 @@ function RiskAccountsTable({ accounts }: Props) {
           </thead>
 
           <tbody>
-            {filteredAccounts.map((account) => (
+            {paginatedAccounts.map((account) => (
               <tr key={account.companyName}>
                 <td className="risk-customer-name">
                   {account.companyName}
@@ -305,6 +336,25 @@ function RiskAccountsTable({ accounts }: Props) {
           </tbody>
         </table>
       </div>
+      <div className="risk-pagination">
+  <button
+    onClick={() => setCurrentPage((page) => page - 1)}
+    disabled={currentPage === 1}
+  >
+    Previous
+  </button>
+
+  <span>
+    Page {currentPage} of {totalPages}
+  </span>
+
+  <button
+    onClick={() => setCurrentPage((page) => page + 1)}
+    disabled={currentPage === totalPages}
+  >
+    Next
+  </button>
+</div>
     </div>
   );
 }

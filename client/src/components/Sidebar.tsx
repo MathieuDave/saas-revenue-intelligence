@@ -48,7 +48,7 @@ function Sidebar() {
           to="/copilot"
           className={getNavClass}
         >
-          AI Copilot
+          Ask RevenueAI
         </NavLink>
       </nav>
     </aside>

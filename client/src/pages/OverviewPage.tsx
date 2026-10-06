@@ -6,6 +6,7 @@ import ChartCard from "../components/ChartCard";
 import RevenueMovementsChart from "../components/RevenueMovementsChart";
 import RetentionPriorityTable from "../components/RetentionPriorityTable";
 import ExpansionPriorityTable from "../components/ExpansionPriorityTable";
+import PageLoadingState from "../components/PageLoadingState";
 
 type OverviewData = {
   arr: number;
@@ -29,11 +30,25 @@ function OverviewPage() {
       });
   }, []);
 
+if (!overviewData) {
+  return (
+    <PageLoadingState
+      title="Executive Overview"
+      description="Revenue performance and business priorities."
+      message="Loading overview data..."
+      kpiCount={5}
+    />
+  );
+}
+
   return (
     <div>
       <div className="app-header">
         <h1>Executive Overview</h1>
         <p>Revenue performance and business priorities.</p>
+        <p className="snapshot-label">
+  Data snapshot · Aug 31, 2026
+</p>
       </div>
 
       <div className="kpi-grid">
@@ -110,11 +125,15 @@ function OverviewPage() {
       </ChartCard>
 
       <ChartCard
-        title="Top Expansion Priorities"
-        description="Accounts with the strongest expansion signals"
-      >
-        <ExpansionPriorityTable />
-      </ChartCard>
+  title="Top Expansion Priorities"
+  description="Accounts with the strongest expansion signals"
+>
+  <p className="table-note">
+    15 accounts are tied at an Opportunity Score of 100 and are ranked by ARR.
+  </p>
+
+  <ExpansionPriorityTable />
+</ChartCard>
     </div>
   );
 }

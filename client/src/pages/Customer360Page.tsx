@@ -6,6 +6,7 @@ import CustomerRevenueChart from "../components/CustomerRevenueChart";
 import CustomerUsageChart from "../components/CustomerUsageChart";
 import CustomerProfile from "../components/CustomerProfile";
 import RecommendedAction from "../components/RecommendedAction";
+import PageLoadingState from "../components/PageLoadingState";
 
 // =========================================================
 // TYPES
@@ -214,9 +215,16 @@ const filteredCustomers = useMemo(() => {
   // PAGE STATES
   // =======================================================
 
-  if (loading && !data) {
-    return <p>Loading customer...</p>;
-  }
+ if (loading && !data) {
+  return (
+    <PageLoadingState
+      title="Customer 360"
+      description="Explore customer health, revenue, usage and account priorities."
+      message="Loading customer data..."
+      kpiCount={5}
+    />
+  );
+}
 
   if (error || !data) {
     return (
@@ -320,13 +328,13 @@ const filteredCustomers = useMemo(() => {
 
         <KpiCard
           title="Risk Score"
-          value={data.kpis.riskScore.toString()}
+          value={`${data.kpis.riskScore} / 100`}
           accent="orange"
         />
 
         <KpiCard
           title="Opportunity Score"
-          value={data.kpis.opportunityScore.toString()}
+          value={`${data.kpis.opportunityScore} / 100`}
           accent="purple"
         />
 
@@ -368,21 +376,21 @@ const filteredCustomers = useMemo(() => {
       <div className="customer-signals-section">
         <h2>Support & Feedback</h2>
 
-        <div className="kpi-grid">
+        <div className="customer-signals-grid">
           <KpiCard
-            title="Tickets - Last 90 Days"
+            title="Tickets · 90D"
             value={data.supportFeedback.ticketsLast90Days.toString()}
             accent="blue"
           />
 
           <KpiCard
-            title="Critical Tickets - 90D"
+            title="Critical Tickets · 90D"
             value={data.supportFeedback.criticalTicketsLast90Days.toString()}
             accent="orange"
           />
 
           <KpiCard
-            title="Negative Feedback - 90D"
+            title="Negative Feedback · 90D"
             value={data.supportFeedback.negativeFeedbackLast90Days.toString()}
             accent="orange"
           />
