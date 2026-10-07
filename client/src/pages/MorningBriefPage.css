@@ -1,0 +1,206 @@
+/* =========================================================
+   MORNING BRIEF — direction « De la nuit à l'aube »
+   Toutes les couleurs et polices du brief vivent ici.
+   ========================================================= */
+
+.brief {
+  /* Palette de l'aube */
+  --night: #0f1a33;      /* le monde des agents (plus tard) */
+  --ink: #13203b;        /* texte principal : un bleu nuit, pas du noir */
+  --ink-soft: #4f5b74;   /* texte secondaire */
+  --ink-faint: #7c879d;  /* légendes */
+  --dawn: #a9bcdd;       /* bleu d'aube : ce qui est prévu */
+  --line: #d6dce8;       /* filets et pistes */
+  --amber: #d98e2b;      /* l'unique accent : « ça demande ton attention » */
+
+  /* Polices */
+  --font-ui: "Schibsted Grotesk", system-ui, sans-serif;
+  --font-voice: "Newsreader", Georgia, serif; /* la voix des agents */
+
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  /* Le ciel du matin : bleu pâle en haut, lumière blanche en bas */
+  background: linear-gradient(
+    180deg,
+    #dbe3f1 0%,
+    #eaeef6 34%,
+    #f7f8fa 72%
+  );
+  font-variant-numeric: tabular-nums;
+}
+
+.brief__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 64px) 96px;
+}
+
+/* ---------- Barre du haut ---------- */
+
+.brief__topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 24px;
+  padding: 28px 0;
+}
+
+.brief__brand {
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.brief__date {
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.brief__explore {
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: 15px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+}
+
+.brief__explore:hover {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.brief__explore:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+  .brief__date {
+    order: 3;
+    width: 100%;
+  }
+}
+
+/* ---------- Ouverture : le titre du brief ---------- */
+
+.brief__opening {
+  padding-top: clamp(48px, 10vh, 120px);
+}
+
+.brief__headline {
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(40px, 6vw, 80px);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.brief__headline span {
+  display: block;
+}
+
+.brief__lede {
+  margin: 32px 0 0;
+  max-width: 34em;
+  color: var(--ink-soft);
+  font-family: var(--font-voice);
+  font-size: clamp(19px, 1.7vw, 23px);
+  line-height: 1.5;
+}
+
+/* ---------- La piste de l'objectif ---------- */
+
+.goal-track {
+  margin: clamp(48px, 8vh, 88px) 0 0;
+  max-width: 880px;
+}
+
+.goal-track__rail {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.goal-track__forecast,
+.goal-track__booked {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 3px;
+}
+
+.goal-track__forecast {
+  background: var(--dawn);
+}
+
+.goal-track__booked {
+  background: var(--ink);
+}
+
+.goal-track__goal {
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+
+.goal-track__above {
+  position: relative;
+  height: 44px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: var(--ink-faint);
+}
+
+.goal-track__legend {
+  position: relative;
+  height: 52px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--ink-faint);
+}
+
+.goal-track__label {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+
+.goal-track__label strong {
+  display: block;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.goal-track__label--goal {
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.goal-track__label--forecast {
+  transform: translateX(-100%);
+  text-align: right;
+}
+
+.goal-track__method {
+  margin: 8px 0 0;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+/* ---------- États ---------- */
+
+.brief__status {
+  padding-top: 30vh;
+  color: var(--ink-soft);
+  font-family: var(--font-voice);
+  font-size: 22px;
+  text-align: center;
+}

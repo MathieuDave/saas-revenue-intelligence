@@ -197,6 +197,7 @@ type BriefSituation = {
   companySize: string;
   arrAtStake: number; // ARR = MRR × 12
   signalTypes: string[];
+  evidence: string[]; // les descriptions des signaux, en phrases
   leadingRisks: number;
   nextRenewal: string | null;
   daysToRenewal: number | null;
@@ -278,7 +279,8 @@ export async function getBriefSituations(
         COUNT_IF(signal_timing = 'Leading')     AS leading_signals,
         COUNT_IF(signal_direction = 'Risk')     AS risks,
         COUNT_IF(signal_type = 'Churn')         AS churns,
-        CONCAT_WS(', ', COLLECT_SET(signal_type)) AS signal_types
+        CONCAT_WS(', ', COLLECT_SET(signal_type)) AS signal_types,
+        CONCAT_WS(' | ', COLLECT_LIST(description)) AS evidence
       FROM ${SCHEMA}.gold_customer_signal_events
       WHERE DATE_FORMAT(month, 'yyyy-MM') = :month
       GROUP BY customer_id
@@ -348,6 +350,9 @@ export async function getBriefSituations(
       companySize,
       arrAtStake,
       signalTypes,
+      evidence: String(row.evidence ?? "")
+      .split(" | ")
+      .filter(Boolean),
       leadingRisks,
       nextRenewal: row.next_renewal == null ? null : String(row.next_renewal),
       daysToRenewal,

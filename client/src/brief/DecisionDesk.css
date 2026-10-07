@@ -1,0 +1,321 @@
+/* =========================================================
+   LA PILE DE DÉCISIONS — utilise les couleurs de .brief
+   ========================================================= */
+
+.desk {
+  margin-top: 96px;
+  max-width: 880px;
+}
+
+.desk__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-bottom: 24px;
+}
+
+.desk__title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.desk__progress,
+.desk__calm {
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+/* La pile : la carte au-dessus, deux bords en dessous */
+.desk__stack {
+  position: relative;
+  padding-bottom: 22px;
+}
+
+.desk__edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40px;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.desk__edge--1 {
+  bottom: 10px;
+  margin: 0 18px;
+  opacity: 0.75;
+  z-index: 2;
+  box-shadow: 0 8px 20px -14px rgba(19, 32, 59, 0.3);
+}
+
+.desk__edge--2 {
+  bottom: 0;
+  margin: 0 36px;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* ---------- La carte ---------- */
+
+.dcard {
+  position: relative;
+  z-index: 3;
+  padding: 32px clamp(20px, 3vw, 40px);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(19, 32, 59, 0.06),
+    0 18px 40px -18px rgba(19, 32, 59, 0.22);
+  animation: dcard-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes dcard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dcard__kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+/* L'accent ambré : « ça demande ton attention » */
+.dcard__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 0 4px rgba(217, 142, 43, 0.18);
+}
+
+.dcard__top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px 32px;
+  margin-top: 14px;
+}
+
+.dcard__name,
+.dcard__num {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dcard__meta {
+  margin: 4px 0 0;
+  color: var(--ink-faint);
+  font-size: 15px;
+}
+
+.dcard__stake {
+  text-align: right;
+}
+
+.dcard__sub {
+  color: var(--ink-faint);
+  font-size: 14px;
+}
+
+.dcard__renew {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.dcard__renew--urgent {
+  color: #8a5208;
+  font-weight: 500;
+}
+
+.dcard__why {
+  margin: 24px 0 0;
+  max-width: 30em;
+  font-family: var(--font-voice);
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.dcard__ifnot {
+  margin: 18px 0 0;
+  padding-left: 14px;
+  border-left: 2px solid var(--amber);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.dcard__evidence {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.dcard__evidence li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.dcard__evidence li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 8px;
+  height: 1px;
+  background: var(--ink-faint);
+}
+
+.dcard__rec {
+  margin: 22px 0 0;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #f1f4f9;
+}
+
+.dcard__rec-who {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.dcard__rec-text {
+  font-family: var(--font-voice);
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.dcard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+/* ---------- Boutons ---------- */
+
+.dbtn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dbtn:hover {
+  border-color: var(--ink);
+}
+
+.dbtn:focus-visible,
+.desk__undo:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.dbtn--primary {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+.dbtn--primary:hover {
+  background: #1d2e52;
+}
+
+.dbtn--quiet {
+  border-color: transparent;
+  color: var(--ink-soft);
+}
+
+.dbtn--quiet:hover {
+  border-color: var(--line);
+}
+
+/* ---------- Après une décision ---------- */
+
+.desk__after {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  min-height: 44px;
+  margin-top: 14px;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.desk__undo {
+  padding: 8px 2px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.desk__clear {
+  padding: 40px clamp(20px, 3vw, 40px);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 40px -18px rgba(19, 32, 59, 0.22);
+  animation: dcard-rise 0.5s ease;
+}
+
+.desk__clear-title {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.desk__clear-text {
+  margin: 12px 0 0;
+  max-width: 32em;
+  color: var(--ink-soft);
+  font-family: var(--font-voice);
+  font-size: 21px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .dcard__stake {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dcard,
+  .desk__clear {
+    animation: none;
+  }
+}
