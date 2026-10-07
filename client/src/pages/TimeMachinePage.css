@@ -45,3 +45,14 @@
   color: #64748b;
   font-size: 13px;
 }
+
+.time-machine-clock {
+  min-width: 300px;
+  text-align: right;
+}
+
+.time-machine-pulse {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+}

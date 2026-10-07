@@ -21,7 +21,7 @@ function App() {
           <Route path="/expansion" element={<ExpansionPage />} />
           <Route path="/customers" element={<Customer360Page />} />
           <Route path="/copilot" element={<CopilotPage />} />
-                    <Route path="/time-machine" element={<TimeMachinePage />} />
+          <Route path="/command-center" element={<TimeMachinePage />} />
         </Routes>
       </main>
     </div>

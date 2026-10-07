@@ -196,8 +196,8 @@ function TimeMachinePage() {
     return (
       <div>
         <div className="app-header">
-          <h1>Time Machine</h1>
-          <p>Replay the business month by month.</p>
+          <h1>Command Center</h1>
+          <p>Situations that need your attention, as they happen.</p>
         </div>
         <p>Unable to load timeline data.</p>
       </div>
@@ -207,8 +207,8 @@ function TimeMachinePage() {
   if (!data) {
     return (
       <PageLoadingState
-        title="Time Machine"
-        description="Replay the business month by month."
+        title="Command Center"
+        description="Situations that need your attention, as they happen."
         message="Loading timeline..."
         kpiCount={5}
       />
@@ -225,8 +225,8 @@ function TimeMachinePage() {
   return (
     <div>
       <div className="app-header">
-        <h1>Time Machine</h1>
-        <p>Replay the business month by month.</p>
+        <h1>Command Center</h1>
+        <p>Situations that need your attention, as they happen.</p>
       </div>
 
       <div className="time-machine-bar">
@@ -256,31 +256,20 @@ function TimeMachinePage() {
             setCurrentIndex(Number(event.target.value));
           }}
         />
-
-        <div className="time-machine-month">
-          {formatMonth(data.month)}
+        <div className="time-machine-clock">
+          <div className="time-machine-month">
+            {formatMonth(data.month)}
+          </div>
+          <div className="time-machine-pulse">
+            MRR {formatMoney(kpis.mrr)} ·{" "}
+            {kpis.activeCustomers.toLocaleString("en-US")} customers · Net new{" "}
+            {netNewMrr >= 0 ? "+" : ""}
+            {formatMoney(netNewMrr)}
+          </div>
         </div>
+
       </div>
 
-      <div className="kpi-grid">
-        <KpiCard title="MRR" value={formatMoney(kpis.mrr)} accent="green" />
-        <KpiCard
-          title="Active Customers"
-          value={kpis.activeCustomers.toLocaleString("en-US")}
-          accent="blue"
-        />
-        <KpiCard title="Net New MRR" value={formatMoney(netNewMrr)} accent="green" />
-        <KpiCard
-          title="Avg License Utilization"
-          value={`${kpis.avgLicenseUtilization.toFixed(1)}%`}
-          accent="purple"
-        />
-        <KpiCard
-          title="Critical Tickets"
-          value={String(kpis.criticalTickets)}
-          accent="orange"
-        />
-      </div>
               {signals && signals.month === currentMonth ? (
         <div style={{ marginTop: 24 }}>
                     <p className="time-machine-note">

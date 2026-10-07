@@ -16,6 +16,13 @@ function Sidebar() {
 
       <nav className="sidebar-nav">
         <NavLink
+          to="/command-center"
+          className={getNavClass}
+        >
+          Command Center
+        </NavLink>
+
+        <NavLink
           to="/"
           end
           className={getNavClass}
@@ -49,12 +56,6 @@ function Sidebar() {
           className={getNavClass}
         >
           Ask RevenueAI
-        </NavLink>
-                <NavLink
-          to="/time-machine"
-          className={getNavClass}
-        >
-          Time Machine
         </NavLink>
       </nav>
     </aside>
