@@ -1,0 +1,511 @@
+/* =========================================================
+   « SEE THE DATA » : le tiroir
+   Il est rendu dans <body> (portail), hors de .brief :
+   il porte donc ses propres couleurs et polices.
+   ========================================================= */
+
+.edrawer-root {
+  --night: #0f1a33;
+  --ink: #13203b;
+  --ink-soft: #4f5b74;
+  --ink-faint: #5f6a80;
+  --line: #d6dce8;
+  --amber: #d98e2b;
+  --amber-ink: #8a5208;
+  --bar: #9aabcd;
+
+  color: var(--ink);
+  font-family: "Schibsted Grotesk", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.edrawer__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(15, 26, 51, 0.32);
+}
+
+.edrawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  width: min(560px, 100%);
+  overflow-y: auto;
+  box-sizing: border-box;
+  background: #f7f8fa;
+  box-shadow: -30px 0 60px -30px rgba(15, 26, 51, 0.45);
+}
+
+/* ---------- En-tête (reste en haut pendant le défilement) ---------- */
+
+.edrawer__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(247, 248, 250, 0.94);
+  backdrop-filter: blur(8px);
+}
+
+.edrawer__kicker {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber-ink);
+}
+
+.edrawer__name {
+  margin: 6px 0 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.edrawer__meta {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.edrawer__close {
+  flex: 0 0 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.edrawer__close:hover {
+  border-color: var(--ink);
+}
+
+.edrawer__close:focus-visible,
+.echart__col:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---------- Corps ---------- */
+
+.edrawer__body {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 24px 28px 40px;
+}
+
+.edrawer__status,
+.edrawer__empty {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.edrawer__h {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.edrawer__sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+/* Chargement */
+.edrawer__loading {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.edrawer__sk {
+  border-radius: 14px;
+  background: linear-gradient(90deg, rgba(19, 32, 59, 0.06), rgba(19, 32, 59, 0.11), rgba(19, 32, 59, 0.06));
+  background-size: 200% 100%;
+  animation: edrawer-shine 1.4s ease-in-out infinite;
+}
+
+.edrawer__sk--facts { height: 76px; }
+.edrawer__sk--chart { height: 240px; }
+.edrawer__sk--line { height: 18px; width: 80%; }
+
+@keyframes edrawer-shine {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+/* Les trois chiffres */
+.edrawer__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.efact {
+  padding: 14px 14px 12px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06);
+}
+
+.efact strong {
+  display: block;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.efact span {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+
+/* Renouvellement proche : l'accent ambré, comme sur les cartes */
+.efact--urgent {
+  box-shadow: inset 0 0 0 1px var(--amber);
+}
+
+.efact--urgent span {
+  color: var(--amber-ink);
+  font-weight: 600;
+}
+
+/* ---------- Le graphique (une seule série : barres fines) ---------- */
+
+.echart {
+  position: relative;
+  margin-top: 18px;
+  padding: 18px 16px 12px 44px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06);
+}
+
+.echart__plot {
+  position: relative;
+  height: 170px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 2px;
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+}
+
+.echart__grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed #e3e8f0;
+  pointer-events: none;
+}
+
+.echart__grid span {
+  position: absolute;
+  right: 100%;
+  margin-right: 8px;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.echart__col {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: default;
+}
+
+.echart__bar {
+  display: block;
+  width: 44%;
+  max-width: 40px;
+  border-radius: 4px 4px 0 0;
+  background: var(--bar);
+  transition: background-color 0.2s ease;
+}
+
+.echart__bar--now {
+  background: var(--amber);
+}
+
+.echart__col--hot .echart__bar {
+  background: var(--ink);
+}
+
+.echart__col--hot .echart__bar--now {
+  background: var(--amber-ink);
+}
+
+.echart__value {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.echart__months,
+.echart__marks {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.echart__marks {
+  min-height: 22px;
+}
+
+.echart__mk {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.epin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.epin--ticket { background: #e6ebf4; color: var(--ink); }
+.epin--feedback { background: #fbefdc; color: var(--amber-ink); }
+.epin--signal { background: var(--amber); color: #fff; }
+
+.echart__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.echart__key > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.echart__tip {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  right: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--night);
+  color: #eef2fa;
+  font-size: 13px;
+  line-height: 1.45;
+  pointer-events: none;
+}
+
+.echart__tip strong {
+  color: #fff;
+}
+
+/* La phrase de lecture : la voix éditoriale du brief */
+.edrawer__reading {
+  margin: 14px 0 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+/* ---------- Ce que les agents ont vu ---------- */
+
+.esignals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.esignals li {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06);
+}
+
+.esignals__top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.esignals__type {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--amber-ink);
+}
+
+.esignals__type--growth {
+  color: var(--ink);
+}
+
+.esignals__month {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.esignals__text {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+/* ---------- La chronologie ---------- */
+
+.etimeline {
+  display: flex;
+  flex-direction: column;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etimeline li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.etimeline li:first-child {
+  border-top: 0;
+}
+
+.etimeline__date {
+  padding-top: 2px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.etimeline__kind {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e6ebf4;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.etimeline__kind--feedback {
+  background: #fbefdc;
+  color: var(--amber-ink);
+}
+
+.etimeline__title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.etimeline__status {
+  margin-left: 8px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.etimeline__status--open {
+  font-weight: 600;
+  color: var(--amber-ink);
+}
+
+.etimeline__quote {
+  margin: 8px 0 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+/* ---------- Revenu et source ---------- */
+
+.edrawer__money {
+  margin: 10px 0 0;
+  font-size: 16px;
+}
+
+.edrawer__source {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #eef1f7;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ---------- Téléphone ---------- */
+
+@media (max-width: 560px) {
+  .edrawer__head,
+  .edrawer__body {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .edrawer__facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .etimeline li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edrawer__sk {
+    animation: none;
+  }
+}

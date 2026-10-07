@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { TeamMemberLoad } from "./types";
 import {
@@ -24,6 +24,7 @@ import {
 } from "./deskItems";
 import { deleteDecision, saveDecision } from "./decisionsApi";
 import AnalystPanel, { cleanItem, type AccountReport } from "./AnalystPanel";
+import EvidenceDrawer from "./EvidenceDrawer";
 import "./DecisionDesk.css";
 import { EASE } from "./motionKit";
 
@@ -288,6 +289,7 @@ function CardShell(props: {
   why: string;
   ifNothing: string;
   evidence: string[];
+  evidenceAction?: ReactNode; // ex. le bouton « See the data »
   recWho: string;
   rec: string;
   children: ReactNode;
@@ -334,6 +336,7 @@ function CardShell(props: {
           <li key={line}>{line}</li>
         ))}
       </ul>
+      {props.evidenceAction}
 
       <div className="dcard__rec">
         <span className="dcard__rec-who">{props.recWho}</span>
@@ -366,6 +369,14 @@ function RiskCard({
   const [picking, setPicking] = useState(false);
   const [investigating, setInvestigating] = useState(false);
   const [report, setReport] = useState<AccountReport | null>(null);
+  const [showData, setShowData] = useState(false);
+  const seeRef = useRef<HTMLButtonElement>(null);
+
+  // En fermant le tiroir, le focus revient sur le bouton qui l'a ouvert
+  const closeData = () => {
+    setShowData(false);
+    seeRef.current?.focus();
+  };
 
   const due = dues[dueIndex] ?? null;
 
@@ -390,9 +401,37 @@ function RiskCard({
       why={whyOnDesk(s)}
       ifNothing={ifNothingHappens(s)}
       evidence={s.evidence}
+      evidenceAction={
+        <button
+          ref={seeRef}
+          type="button"
+          className="dcard__see"
+          aria-haspopup="dialog"
+          onClick={() => setShowData(true)}
+        >
+          See the data
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12h14" />
+            <path d="m13 6 6 6-6 6" />
+          </svg>
+        </button>
+      }
       recWho={recWho}
       rec={rec}
     >
+      {/* Le tiroir « See the data » : AnimatePresence joue sa sortie avant de le retirer */}
+      <AnimatePresence>
+        {showData && (
+          <EvidenceDrawer
+            key="evidence"
+            customerId={s.customerId}
+            companyName={s.companyName}
+            asOf={asOf}
+            onClose={closeData}
+          />
+        )}
+      </AnimatePresence>
+
       {investigating && (
         <AnalystPanel customerId={s.customerId} onReport={setReport} />
       )}

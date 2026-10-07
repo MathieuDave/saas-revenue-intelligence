@@ -1,0 +1,216 @@
+/* =========================================================
+   « ASK THE ACCOUNT ANALYST » : le monde des agents (sombre),
+   comme le panneau des agents du brief
+   ========================================================= */
+
+.achat {
+  padding: 20px;
+  border-radius: 18px;
+  background: var(--night);
+  color: #eef2fa;
+}
+
+.achat__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.achat__dot {
+  flex: 0 0 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+.achat__sub {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #b9c5de;
+}
+
+.achat__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.achat__chip {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #2f4069;
+  border-radius: 999px;
+  background: transparent;
+  color: #eef2fa;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.achat__chip:hover {
+  border-color: #8fa3cf;
+}
+
+.achat__chip:disabled,
+.achat__send:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.achat__chip:focus-visible,
+.achat__send:focus-visible,
+.achat__composer input:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ---------- La conversation ---------- */
+
+.achat__thread {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.achat__thread:empty {
+  display: none;
+}
+
+.achat__exchange {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.achat__question {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 14px 14px 4px 14px;
+  background: #24345c;
+  font-size: 15px;
+}
+
+.achat__who {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
+.achat__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: #b9c5de;
+}
+
+.achat__steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.achat__tick {
+  flex: 0 0 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6f82ad;
+}
+
+.achat__tick--live {
+  background: var(--amber);
+  animation: achat-pulse 1s ease-in-out infinite;
+}
+
+@keyframes achat-pulse {
+  0%,
+  100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+/* La réponse : la voix éditoriale des agents */
+.achat__answer {
+  margin: 0;
+  color: #fff;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 18px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.achat__error {
+  margin: 0;
+  color: #f3c27a;
+  font-size: 14px;
+}
+
+/* ---------- La zone de saisie ---------- */
+
+.achat__composer {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.achat__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.achat__composer input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #2f4069;
+  border-radius: 12px;
+  background: #16234a;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+}
+
+.achat__composer input::placeholder {
+  color: #8fa3cf;
+}
+
+.achat__send {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--amber);
+  color: #1a1205;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.achat__foot {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8fa3cf;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achat__tick--live {
+    animation: none;
+  }
+}

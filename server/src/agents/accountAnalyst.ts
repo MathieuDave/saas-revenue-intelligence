@@ -1,22 +1,10 @@
 import type { connectToDatabricks } from "../databricks.js";
-import {
-  callModel,
-  getReasoning,
-  getText,
-  type ChatMessage,
-} from "../llm.js";
-import {
-  AS_OF_DATE,
-  createTools,
-  getToolDefinitions,
-  runTool,
-} from "./tools.js";
+import type { ChatMessage } from "../llm.js";
+import { AS_OF_DATE } from "./tools.js";
+import { runAgentLoop } from "./agentLoop.js";
 
 type DatabricksClient =
   Awaited<ReturnType<typeof connectToDatabricks>>;
-
-// Garde-fou : jamais plus de 6 allers-retours avec le modèle
-const MAX_STEPS = 6;
 
 // =========================================================
 // CE QUE L'AGENT ANNONCE PENDANT SON ENQUÊTE
@@ -84,7 +72,8 @@ function parseReport(text: string): AccountReport | null {
 }
 
 // =========================================================
-// LA BOUCLE D'AGENT
+// L'ENQUÊTE : une question fixe, un rapport structuré
+// (la boucle elle-même vit dans agentLoop.ts, partagée avec la conversation)
 // =========================================================
 
 export async function runAccountAnalyst(
@@ -92,9 +81,6 @@ export async function runAccountAnalyst(
   customerId: string,
   onStep: (step: AgentStep) => void
 ) {
-  const tools = createTools(databricks);
-  const toolDefinitions = getToolDefinitions(tools);
-
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
     {
@@ -103,69 +89,16 @@ export async function runAccountAnalyst(
     },
   ];
 
-  let totalTokens = 0;
+  const { finalText, steps, totalTokens } = await runAgentLoop(databricks, messages, {
+    onThinking: (text) => onStep({ type: "thinking", text }),
+    onToolCall: (tool, args) => onStep({ type: "tool_call", tool, arguments: args }),
+    onToolResult: (tool, result) => onStep({ type: "tool_result", tool, result }),
+  });
 
-  for (let step = 1; step <= MAX_STEPS; step++) {
-    // 1. Demander au modèle
-    const reply = await callModel(messages, toolDefinitions);
-    totalTokens += reply.usage.total_tokens;
-
-    // 2. Annoncer sa réflexion
-    const reasoning = getReasoning(reply.message);
-    if (reasoning) onStep({ type: "thinking", text: reasoning });
-
-    const toolCalls = reply.message.tool_calls ?? [];
-
-    // 3. Garder sa réponse dans la conversation (sans les blocs de réflexion)
-        // 3. Garder sa réponse dans la conversation (sans les blocs de réflexion)
-    const assistantMessage: ChatMessage = {
-      role: "assistant",
-      content: getText(reply.message) || null,
-    };
-
-    // On ajoute tool_calls SEULEMENT s'il y en a (sinon le champ reste absent)
-    if (toolCalls.length > 0) {
-      assistantMessage.tool_calls = toolCalls;
-    }
-
-    messages.push(assistantMessage);
-
-    // 4. Il veut des outils → on les exécute et on recommence
-    if (reply.finishReason === "tool_calls" && toolCalls.length > 0) {
-      for (const call of toolCalls) {
-        onStep({
-          type: "tool_call",
-          tool: call.function.name,
-          arguments: call.function.arguments,
-        });
-
-        const result = await runTool(
-          tools,
-          call.function.name,
-          call.function.arguments
-        );
-
-        onStep({ type: "tool_result", tool: call.function.name, result });
-
-        messages.push({
-          role: "tool",
-          tool_call_id: call.id,
-          content: result,
-        });
-      }
-      continue;
-    }
-
-    // 5. Sinon, c'est la réponse finale
-    const finalText = getText(reply.message);
-
-    return {
-      report: parseReport(finalText),
-      rawText: finalText,
-      steps: step,
-      totalTokens,
-    };
-  }
-
-  throw new Error(`The agent did not finish within ${MAX_STEPS} steps.`);
+  return {
+    report: parseReport(finalText),
+    rawText: finalText,
+    steps,
+    totalTokens,
+  };
 }
