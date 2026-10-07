@@ -7,7 +7,6 @@ import RiskPage from "./pages/RiskPage";
 import ExpansionPage from "./pages/ExpansionPage";
 import Customer360Page from "./pages/Customer360Page";
 import CopilotPage from "./pages/CopilotPage";
-import TimeMachinePage from "./pages/TimeMachinePage";
 import MorningBriefPage from "./pages/MorningBriefPage";
 
 // Mise en page de la V1 : sidebar + la page demandée (dans l'Outlet)
@@ -29,14 +28,13 @@ function App() {
       {/* V2 : le Morning Brief en pleine page, sans la sidebar V1 */}
       <Route path="/brief" element={<MorningBriefPage />} />
 
-      {/* V1 : toutes les pages existantes, inchangées, avec la sidebar */}
+      {/* V1 : les pages d'exploration, avec la sidebar */}
       <Route element={<V1Layout />}>
         <Route path="/" element={<OverviewPage />} />
         <Route path="/risk" element={<RiskPage />} />
         <Route path="/expansion" element={<ExpansionPage />} />
         <Route path="/customers" element={<Customer360Page />} />
         <Route path="/copilot" element={<CopilotPage />} />
-        <Route path="/command-center" element={<TimeMachinePage />} />
       </Route>
     </Routes>
   );

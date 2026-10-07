@@ -16,10 +16,10 @@ function Sidebar() {
 
       <nav className="sidebar-nav">
         <NavLink
-          to="/command-center"
+          to="/brief"
           className={getNavClass}
         >
-          Command Center
+          Morning Brief
         </NavLink>
 
         <NavLink
