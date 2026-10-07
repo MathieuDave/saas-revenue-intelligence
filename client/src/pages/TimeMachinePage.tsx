@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 
-import KpiCard from "../components/KpiCard";
 import PageLoadingState from "../components/PageLoadingState";
 import SituationFeed from "../components/SituationFeed";
 import type { Situation } from "../components/SituationFeed";
 import type { SignalEvent } from "../components/SignalFeed";
+
 import "./TimeMachinePage.css";
+
+// =========================================================
+// TYPES
+// =========================================================
 
 type TimelineData = {
   month: string;
@@ -22,6 +26,7 @@ type TimelineData = {
     negativeFeedback: number;
   };
 };
+
 type SignalsData = {
   month: string;
   summary: {
@@ -37,8 +42,19 @@ type SignalsData = {
   situations: Situation[];
 };
 
+// L'état de l'horloge, tel que le serveur l'annonce
+type SimulationState = {
+  month: string | null;
+  index: number;
+  total: number;
+  isPlaying: boolean;
+};
+
 const API_URL = "http://localhost:3000/api";
-const PLAY_SPEED_MS = 1500; // 1,5 seconde par mois
+
+// =========================================================
+// FORMATAGE
+// =========================================================
 
 // "2026-03" → "Mar 2026"
 function formatMonth(month: string) {
@@ -70,19 +86,40 @@ function formatMoney(value: number) {
   return `${sign}$${absolute}`;
 }
 
+// =========================================================
+// TÉLÉCOMMANDE : envoyer des commandes à l'horloge du serveur
+// =========================================================
+
+function sendCommand(command: "play" | "pause" | "reset") {
+  fetch(`${API_URL}/simulation/${command}`, { method: "POST" }).catch(
+    (err) => console.error(`Simulation ${command} error:`, err)
+  );
+}
+
+function seekTo(month: string) {
+  fetch(`${API_URL}/simulation/seek`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ month }),
+  }).catch((err) => console.error("Simulation seek error:", err));
+}
+
+// =========================================================
+// PAGE
+// =========================================================
+
 function TimeMachinePage() {
   const [months, setMonths] = useState<string[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [data, setData] = useState<TimelineData | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [error, setError] = useState(false);
+  const [clock, setClock] = useState<SimulationState | null>(null);
   const [signals, setSignals] = useState<SignalsData | null>(null);
+  const [data, setData] = useState<TimelineData | null>(null);
+  const [isLive, setIsLive] = useState(false);
+  const [error, setError] = useState(false);
 
-  const currentMonth = months[currentIndex];
-  const lastIndex = months.length - 1;
+  const currentMonth = clock?.month ?? null;
 
   // ---------------------------------------------------------
-  // 1. Charger la liste des mois (une seule fois)
+  // 1. La liste des mois (pour le curseur)
   // ---------------------------------------------------------
   useEffect(() => {
     fetch(`${API_URL}/timeline/months`)
@@ -100,13 +137,34 @@ function TimeMachinePage() {
   }, []);
 
   // ---------------------------------------------------------
-  // 2. Charger les KPIs à chaque changement de mois
+  // 2. Le flux en direct : le serveur POUSSE l'état et les situations
+  // ---------------------------------------------------------
+  useEffect(() => {
+    const source = new EventSource(`${API_URL}/live`);
+
+    source.onopen = () => setIsLive(true);
+
+    // En cas de coupure, EventSource se reconnecte tout seul
+    source.onerror = () => setIsLive(false);
+
+    source.addEventListener("state", (event) => {
+      setClock(JSON.parse(event.data) as SimulationState);
+    });
+
+    source.addEventListener("signals", (event) => {
+      setSignals(JSON.parse(event.data) as SignalsData);
+    });
+
+    // Fermer la connexion quand on quitte la page
+    return () => source.close();
+  }, []);
+
+  // ---------------------------------------------------------
+  // 3. Les chiffres de la ligne discrète (MRR, clients, Net new)
   // ---------------------------------------------------------
   useEffect(() => {
     if (!currentMonth) return;
 
-    // Si le mois change avant que la réponse arrive,
-    // on ignore l'ancienne réponse (évite d'afficher le mauvais mois).
     let ignore = false;
 
     fetch(`${API_URL}/timeline?month=${currentMonth}`)
@@ -119,75 +177,12 @@ function TimeMachinePage() {
       .then((result: TimelineData) => {
         if (!ignore) setData(result);
       })
-      .catch((err) => {
-        console.error("Timeline error:", err);
-        if (!ignore) setError(true);
-      });
+      .catch((err) => console.error("Timeline error:", err));
 
     return () => {
       ignore = true;
     };
   }, [currentMonth]);
-
-    // ---------------------------------------------------------
-  // 2b. Charger les signaux à chaque changement de mois
-  // ---------------------------------------------------------
-  useEffect(() => {
-    if (!currentMonth) return;
-
-    let ignore = false;
-
-    fetch(`${API_URL}/signals?month=${currentMonth}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Unable to retrieve signals");
-        }
-        return response.json();
-      })
-      .then((result: SignalsData) => {
-        if (!ignore) setSignals(result);
-      })
-      .catch((err) => {
-        console.error("Signals error:", err);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [currentMonth]);
-
-  // ---------------------------------------------------------
-  // 3. Le moteur du bouton Play
-  // ---------------------------------------------------------
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    const timer = setInterval(() => {
-      setCurrentIndex((index) => Math.min(index + 1, lastIndex));
-    }, PLAY_SPEED_MS);
-
-    return () => clearInterval(timer);
-  }, [isPlaying, lastIndex]);
-
-  // Arrêt automatique au dernier mois
-  useEffect(() => {
-    if (isPlaying && currentIndex >= lastIndex) {
-      setIsPlaying(false);
-    }
-  }, [isPlaying, currentIndex, lastIndex]);
-
-  function handlePlayPause() {
-    // Si on est à la fin, Play recommence depuis le début
-    if (!isPlaying && currentIndex >= lastIndex) {
-      setCurrentIndex(0);
-    }
-    setIsPlaying((playing) => !playing);
-  }
-
-  function handleReset() {
-    setIsPlaying(false);
-    setCurrentIndex(0);
-  }
 
   // ---------------------------------------------------------
   // Affichage
@@ -199,18 +194,18 @@ function TimeMachinePage() {
           <h1>Command Center</h1>
           <p>Situations that need your attention, as they happen.</p>
         </div>
-        <p>Unable to load timeline data.</p>
+        <p>Unable to load the Command Center.</p>
       </div>
     );
   }
 
-  if (!data) {
+  if (!clock || !currentMonth || !data) {
     return (
       <PageLoadingState
         title="Command Center"
         description="Situations that need your attention, as they happen."
-        message="Loading timeline..."
-        kpiCount={5}
+        message="Connecting to the live feed..."
+        kpiCount={0}
       />
     );
   }
@@ -232,7 +227,7 @@ function TimeMachinePage() {
       <div className="time-machine-bar">
         <button
           className="time-machine-button"
-          onClick={handleReset}
+          onClick={() => sendCommand("reset")}
           title="Back to first month"
         >
           ⏮
@@ -240,25 +235,32 @@ function TimeMachinePage() {
 
         <button
           className="time-machine-button time-machine-button--primary"
-          onClick={handlePlayPause}
+          onClick={() => sendCommand(clock.isPlaying ? "pause" : "play")}
         >
-          {isPlaying ? "⏸ Pause" : "▶ Play"}
+          {clock.isPlaying ? "⏸ Pause" : "▶ Play"}
         </button>
 
         <input
           className="time-machine-slider"
           type="range"
           min={0}
-          max={lastIndex}
-          value={currentIndex}
+          max={Math.max(clock.total - 1, 0)}
+          value={clock.index}
           onChange={(event) => {
-            setIsPlaying(false);
-            setCurrentIndex(Number(event.target.value));
+            const month = months[Number(event.target.value)];
+            if (month) seekTo(month);
           }}
         />
+
+        <span
+          className={`live-indicator ${isLive ? "live-indicator--on" : ""}`}
+        >
+          {isLive ? "● Live" : "○ Reconnecting…"}
+        </span>
+
         <div className="time-machine-clock">
           <div className="time-machine-month">
-            {formatMonth(data.month)}
+            {formatMonth(currentMonth)}
           </div>
           <div className="time-machine-pulse">
             MRR {formatMoney(kpis.mrr)} ·{" "}
@@ -267,12 +269,11 @@ function TimeMachinePage() {
             {formatMoney(netNewMrr)}
           </div>
         </div>
-
       </div>
 
-              {signals && signals.month === currentMonth ? (
+      {signals && signals.month === currentMonth ? (
         <div style={{ marginTop: 24 }}>
-                    <p className="time-machine-note">
+          <p className="time-machine-note">
             🔔 {signals.summary.situations} accounts need attention ·{" "}
             {signals.summary.compoundingRisk} compounding risk ·{" "}
             {signals.summary.total} signals
@@ -283,10 +284,10 @@ function TimeMachinePage() {
       ) : (
         <p className="time-machine-note">🔔 Loading signals…</p>
       )}
-      
+
       <p className="time-machine-note">
-        Data snapshot · {formatMonth(data.month)} · Month {currentIndex + 1} of{" "}
-        {months.length}
+        Data snapshot · {formatMonth(currentMonth)} · Month {clock.index + 1} of{" "}
+        {clock.total}
       </p>
     </div>
   );

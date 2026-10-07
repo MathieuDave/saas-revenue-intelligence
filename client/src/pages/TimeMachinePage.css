@@ -56,3 +56,14 @@
   color: #64748b;
   font-size: 13px;
 }
+
+.live-indicator {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.live-indicator--on {
+  color: #16a34a;
+}

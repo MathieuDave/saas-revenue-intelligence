@@ -13,6 +13,8 @@ import { createCustomersRouter } from "./routes/customers.js";
 import genieRoutes from "./routes/genie.js";
 import { createTimelineRouter } from "./routes/timeline.js";
 import { createSignalsRouter } from "./routes/signals.js";
+import { createLiveRouter } from "./routes/live.js";
+import { initSimulation } from "./simulation.js";
 
 const app = express();
 const PORT = 3000;
@@ -29,7 +31,7 @@ async function startServer() {
      * On ne reconnecte PAS Databricks à chaque requête.
      */
     const databricks = await connectToDatabricks();
-
+    await initSimulation(databricks);
     app.use("/api", createOverviewRouter(databricks));
     app.use("/api", createRevenueRouter(databricks));
     app.use("/api", createPrioritiesRouter(databricks));
@@ -39,6 +41,7 @@ async function startServer() {
     app.use("/api", createTimelineRouter(databricks));
     app.use("/api", createSignalsRouter(databricks));
     app.use("/api", genieRoutes);
+    app.use("/api", createLiveRouter());
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
