@@ -1,5 +1,8 @@
+import { useState } from "react";
+
 import "./SignalFeed.css";
 
+import AgentInvestigation from "./AgentInvestigation";
 import type { SignalEvent } from "./SignalFeed";
 
 export type Situation = {
@@ -44,6 +47,9 @@ function situationVariant(situation: Situation) {
 }
 
 function SituationFeed({ situations, limit = 10 }: SituationFeedProps) {
+  // Le client dont l'enquête est ouverte (un seul à la fois)
+  const [investigating, setInvestigating] = useState<string | null>(null);
+
   if (situations.length === 0) {
     return <p className="signal-feed-empty">No signals this month.</p>;
   }
@@ -55,6 +61,7 @@ function SituationFeed({ situations, limit = 10 }: SituationFeedProps) {
     <div className="signal-feed">
       {visible.map((situation) => {
         const variant = situationVariant(situation);
+        const isOpen = investigating === situation.customerId;
 
         return (
           <div
@@ -101,6 +108,23 @@ function SituationFeed({ situations, limit = 10 }: SituationFeedProps) {
                 {formatMoney(situation.mrrAtStake)} MRR at stake
               </span>
             </div>
+
+            {/* NOUVEAU : lancer l'enquête de l'agent */}
+            <button
+              className="investigate-button"
+              onClick={() =>
+                setInvestigating(isOpen ? null : situation.customerId)
+              }
+            >
+              {isOpen ? "Hide the investigation" : "Investigate with the agent"}
+            </button>
+
+            {isOpen && (
+              <AgentInvestigation
+                customerId={situation.customerId}
+                companyName={situation.companyName}
+              />
+            )}
           </div>
         );
       })}

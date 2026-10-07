@@ -1,0 +1,181 @@
+.agent-panel {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #0f172a;
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.agent-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.agent-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #5b3fd9;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.agent-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #c4b5fd;
+}
+
+.agent-status {
+  margin-left: auto;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.agent-status--done {
+  color: #4ade80;
+}
+
+.agent-status--error {
+  color: #f87171;
+}
+
+.agent-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Chaque étape apparaît en glissant doucement */
+.agent-step {
+  animation: agent-rise 0.4s ease both;
+}
+
+@keyframes agent-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.agent-step--thinking p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #cbd5e1;
+  white-space: pre-line;
+}
+
+.agent-step-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.agent-step--tool_call code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: #c4b5fd;
+}
+
+.agent-step-result {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.agent-working {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.agent-error {
+  margin: 0;
+  color: #fca5a5;
+}
+
+.agent-report {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #1e293b;
+  animation: agent-rise 0.5s ease both;
+}
+
+.agent-report h4 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.agent-report p,
+.agent-report li {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #e2e8f0;
+}
+
+.agent-report ul,
+.agent-report ol {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-email {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #1e293b;
+}
+
+.agent-email p {
+  white-space: pre-line;
+  color: #cbd5e1;
+}
+
+.agent-raw {
+  white-space: pre-wrap;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.investigate-button {
+  margin-top: 12px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #c4b5fd;
+  border-radius: 10px;
+  background: #f5f3ff;
+  color: #4c1d95;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-step,
+  .agent-report {
+    animation: none;
+  }
+}
