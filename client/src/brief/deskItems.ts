@@ -50,6 +50,7 @@ export type Action =
   | "send"; // croissance : envoyé à l'Account Executive
 
 export type Decision = {
+  decisionId: string | null; // donné par le serveur ; null pendant l'enregistrement  
   id: string;
   action: Action;
   person: string | null;

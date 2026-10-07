@@ -14,6 +14,7 @@ import CalmSections from "../brief/CalmSections";
 import NightPanel from "../brief/NightPanel";
 import { fetchDecisions } from "../brief/decisionsApi";
 import TrustLine from "../brief/TrustLine";
+import FollowUps from "../brief/FollowUps";
 import BootSequence, { BriefSkeleton } from "../brief/BootSequence";
 import { CountUp, EASE, Reveal } from "../brief/motionKit";
 import { markIntroPlayed, shouldPlayIntro, todayKey } from "../brief/intro";
@@ -354,6 +355,11 @@ function MorningBriefPage() {
                   setDecisions={setDecisions}
                   trust={<TrustLine month={brief.month} />}
                 />
+              </Reveal>
+
+              {/* Le suivi des décisions du brief précédent (rien s'il n'y en a pas) */}
+              <Reveal play={play} delay={1.0}>
+                <FollowUps month={brief.month} />
               </Reveal>
 
               <Reveal play={play} delay={1.1}>
