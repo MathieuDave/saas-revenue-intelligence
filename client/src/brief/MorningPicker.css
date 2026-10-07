@@ -1,0 +1,298 @@
+/* =========================================================
+   CHOISIR LE MATIN : la pastille et son calendrier de mois
+   ========================================================= */
+
+.mpick {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(19, 32, 59, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.05), 0 8px 24px -18px rgba(19, 32, 59, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Les flèches ‹ › : un matin avant, un matin après */
+.mpick__step,
+.mpick__year-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mpick__step:hover:not(:disabled),
+.mpick__year-step:hover:not(:disabled) {
+  background: #eef1f7;
+  color: var(--ink);
+}
+
+.mpick__step:disabled,
+.mpick__year-step:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* La pastille : la date du matin + son statut */
+.mpick__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.mpick__trigger:hover,
+.mpick__trigger--open {
+  background: #eef1f7;
+}
+
+.mpick__icon {
+  color: var(--ink-soft);
+}
+
+.mpick__label--short {
+  display: none;
+}
+
+.mpick__badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Un matin passé : l'ambre, comme le bandeau */
+.mpick__badge--past {
+  background: #fbefdc;
+  color: #8a5208;
+}
+
+.mpick__chevron {
+  color: var(--ink-soft);
+  transition: transform 0.2s ease;
+}
+
+.mpick__trigger--open .mpick__chevron {
+  transform: rotate(180deg);
+}
+
+.mpick__step:focus-visible,
+.mpick__trigger:focus-visible,
+.mpick__year-step:focus-visible,
+.mpick__cell:focus-visible,
+.mpick__jump:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---------- Le calendrier ---------- */
+
+.mpick__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 40;
+  width: 300px;
+  margin-left: -150px;
+  padding: 14px;
+  border: 1px solid rgba(19, 32, 59, 0.08);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(19, 32, 59, 0.06), 0 24px 48px -20px rgba(19, 32, 59, 0.35);
+  transform-origin: top center;
+}
+
+.mpick__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.mpick__year {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.mpick__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mpick__row {
+  display: grid;
+  grid-template-columns: 28px repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 4px;
+}
+
+.mpick__quarter {
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* Un matin : le mois en gros, le jour en petit */
+.mpick__cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: 50px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mpick__cell:hover:not(:disabled):not(.mpick__cell--on) {
+  background: #eef1f7;
+}
+
+.mpick__cell:disabled {
+  color: #c3cad8;
+  cursor: default;
+}
+
+.mpick__month {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mpick__day {
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.mpick__cell:disabled .mpick__day {
+  color: inherit;
+}
+
+.mpick__cell--on {
+  background: var(--ink);
+  color: #fff;
+}
+
+.mpick__cell--on .mpick__day {
+  color: #b9c5de;
+}
+
+/* Le dernier matin : un point ambré dans le coin */
+.mpick__cell--latest::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: calc(50% + 17px);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+.mpick__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 30px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.mpick__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.mpick__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+.mpick__jump {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: #eef1f7;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mpick__jump:hover {
+  background: #e1e6f0;
+}
+
+/* ---------- Petits écrans ---------- */
+
+@media (max-width: 600px) {
+  /* Sur téléphone, la pastille passe sur sa propre ligne */
+  .mpick {
+    order: 3;
+  }
+
+  .mpick__label--full {
+    display: none;
+  }
+
+  .mpick__label--short {
+    display: inline;
+  }
+
+  .mpick__panel {
+    left: 0;
+    width: min(300px, calc(100vw - 40px));
+    margin-left: 0;
+    transform-origin: top left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mpick__chevron,
+  .mpick__cell,
+  .mpick__trigger,
+  .mpick__step {
+    transition: none;
+  }
+}

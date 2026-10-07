@@ -5,16 +5,15 @@ import { MotionConfig, motion } from "motion/react";
 import type { BriefResponse, QuarterGoal } from "../brief/types";
 import {
   countWord,
-  formatDay,
   formatMoney,
   shortQuarter,
 } from "../brief/briefText";
 import DecisionDesk from "../brief/DecisionDesk";
-import CalmSections from "../brief/CalmSections";
 import AgentsStrip, { type FollowUpSummary } from "../brief/AgentsStrip";
 import { fetchDecisions } from "../brief/decisionsApi";
 import TrustLine from "../brief/TrustLine";
-import FollowUps from "../brief/FollowUps";
+import MorningTiles from "../brief/MorningTiles";
+import MorningPicker from "../brief/MorningPicker";
 import BootSequence, { BriefSkeleton } from "../brief/BootSequence";
 import { CountUp, EASE, Reveal } from "../brief/motionKit";
 import { markIntroPlayed, shouldPlayIntro, todayKey } from "../brief/intro";
@@ -33,37 +32,12 @@ const API_URL = "http://localhost:3000/api";
 const LATEST_MONTH = "2026-08";
 const EARLIEST_MONTH = "2025-04";
 
-// "2026-08", -1 → "2026-07"
-function shiftMonth(month: string, delta: number): string {
-  const [year, m] = month.split("-").map(Number);
-  const date = new Date(Date.UTC(year ?? 2026, (m ?? 1) - 1 + delta, 1));
-  return date.toISOString().slice(0, 7);
-}
-
 // "2026-07" → "July 31" (le dernier jour du mois : le matin du brief)
 function morningLabel(month: string): string {
   const [year, m] = month.split("-").map(Number);
   return new Date(Date.UTC(year ?? 2026, m ?? 1, 0)).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-// Tous les matins disponibles, du plus récent au plus ancien
-function allMornings(): string[] {
-  const months: string[] = [];
-  for (let m = LATEST_MONTH; m >= EARLIEST_MONTH; m = shiftMonth(m, -1)) months.push(m);
-  return months;
-}
-
-// "2026-07" → "July 31, 2026"
-function morningLongLabel(month: string): string {
-  const [year, m] = month.split("-").map(Number);
-  return new Date(Date.UTC(year ?? 2026, m ?? 1, 0)).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
     timeZone: "UTC",
   });
 }
@@ -297,7 +271,6 @@ function MorningBriefPage() {
   // Ce qui arrive sur le bureau du VP (risques, arbitrage, T4, croissance)
   const desk = brief ? buildDesk(brief) : [];
   const team = brief ? liveTeamLoad(brief.teamLoad, desk, decisions) : [];
-  const growthSent = decisions.some((d) => d.id === "grow" && d.action === "send");
 
   const ready = brief !== null && !booting;
 
@@ -308,27 +281,15 @@ function MorningBriefPage() {
       <div className="brief__inner">
         <header className="brief__topbar">
           <span className="brief__brand">RevenueAI</span>
-          {brief && <span className="brief__date">{formatDay(brief.asOf)}</span>}
-
-          {/* Choisir le matin : une vraie liste, discrète */}
-          <label className="brief__picker">
-            <span className="brief__picker-label">Morning</span>
-            <select
-              className="brief__select"
-              value={month}
-              onChange={(event) => {
-                const chosen = event.target.value;
-                navigate(chosen === LATEST_MONTH ? "/brief" : `/brief?month=${chosen}`);
-              }}
-            >
-              {allMornings().map((m) => (
-                <option key={m} value={m}>
-                  {morningLongLabel(m)}
-                  {m === LATEST_MONTH ? " (latest)" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* Choisir le matin : la pastille, ses flèches et son calendrier */}
+          <MorningPicker
+            month={month}
+            latest={LATEST_MONTH}
+            earliest={EARLIEST_MONTH}
+            onChange={(chosen) =>
+              navigate(chosen === LATEST_MONTH ? "/brief" : `/brief?month=${chosen}`)
+            }
+          />
 
           <Link to="/" className="brief__explore">
             Explore the data
@@ -399,13 +360,15 @@ function MorningBriefPage() {
                 />
               </Reveal>
 
-              {/* Le suivi des décisions du brief précédent (rien s'il n'y en a pas) */}
+              {/* Le reste du matin : 4 tuiles, un panneau à la fois */}
               <Reveal play={play} delay={1.0}>
-                <FollowUps month={brief.month} onSummary={setFollowUps} />
-              </Reveal>
-
-              <Reveal play={play} delay={1.1}>
-                <CalmSections brief={brief} team={team} growthSent={growthSent} />
+                <MorningTiles
+                  brief={brief}
+                  desk={desk}
+                  decisions={decisions}
+                  team={team}
+                  onFollowUps={setFollowUps}
+                />
               </Reveal>
           </main>
         )}

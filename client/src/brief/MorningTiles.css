@@ -1,0 +1,357 @@
+/* =========================================================
+   « THE REST OF YOUR MORNING » : quatre tuiles, un panneau à la fois
+   ========================================================= */
+
+.mtiles {
+  margin-top: 88px;
+}
+
+.mtiles__title {
+  margin: 0 0 16px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.mtiles__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---------- Une tuile ---------- */
+
+.mtile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 132px;
+  padding: 16px 16px 14px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06), 0 12px 30px -20px rgba(19, 32, 59, 0.25);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.mtile:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--line);
+}
+
+.mtile:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.mtile:disabled {
+  cursor: default;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.mtile--open {
+  border-color: var(--ink);
+}
+
+.mtile__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.mtile__value {
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Ce qui demande encore l'attention : l'accent ambré */
+.mtile--alert .mtile__value {
+  color: #8a5208;
+}
+
+.mtile__sub {
+  padding-right: 18px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.mtile__chevron {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  color: var(--ink-soft);
+  transition: transform 0.2s ease;
+}
+
+.mtile--open .mtile__chevron {
+  transform: rotate(180deg);
+}
+
+/* ---------- Le panneau ouvert ---------- */
+
+.mpanel {
+  margin-top: 10px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06), 0 18px 40px -24px rgba(19, 32, 59, 0.22);
+}
+
+.mpanel__intro {
+  margin: 0 0 10px;
+  font-family: var(--font-voice);
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.mpanel__note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.mpanel__note strong {
+  color: var(--ink);
+}
+
+.mpanel__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mpanel__list li + li {
+  border-top: 1px solid var(--line);
+}
+
+/* Une ligne de compte : tout est cliquable */
+.mrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mrow:hover {
+  background: #f3f5f9;
+}
+
+.mrow:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.mrow__num {
+  flex: 0 0 56px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mrow__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mrow__name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mrow__meta {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.mrow__reading {
+  font-family: var(--font-voice);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.mrow__arrow {
+  flex: 0 0 16px;
+  color: var(--ink-soft);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.mrow:hover .mrow__arrow,
+.mrow:focus-visible .mrow__arrow {
+  opacity: 1;
+}
+
+/* Les statuts du suivi */
+.mtag {
+  flex: 0 0 auto;
+  min-width: 56px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.mtag--lost,
+.mtag--shrank {
+  background: #8a5208;
+  color: #fff;
+}
+
+.mtag--worse {
+  background: #fbefdc;
+  color: #8a5208;
+}
+
+.mtag--same {
+  background: #eef1f7;
+  color: var(--ink-soft);
+}
+
+.mtag--better {
+  background: #e6ebf4;
+  color: var(--ink);
+}
+
+/* ---------- L'équipe ---------- */
+
+.mteam {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mteam__person {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mteam__person:hover {
+  border-color: var(--ink-soft);
+}
+
+.mteam__person:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.mteam__person--on {
+  border-color: var(--ink);
+  background: #f3f5f9;
+}
+
+.mteam__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mteam__name {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mteam__role {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.mteam__load {
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mteam__load--heavy {
+  color: #8a5208;
+}
+
+.mteam__bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.mteam__fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ink);
+}
+
+.mteam__fill--heavy {
+  background: var(--amber);
+}
+
+.mteam__accounts {
+  margin-top: 16px;
+}
+
+.mteam__title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ---------- Petits écrans ---------- */
+
+@media (max-width: 860px) {
+  .mtiles__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .mtiles__grid,
+  .mteam {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mtile {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mtile,
+  .mtile__chevron {
+    transition: none;
+  }
+}
