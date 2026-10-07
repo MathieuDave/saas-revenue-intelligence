@@ -11,10 +11,6 @@ import { createRiskRouter } from "./routes/risk.js";
 import { createExpansionRouter } from "./routes/expansion.js";
 import { createCustomersRouter } from "./routes/customers.js";
 import genieRoutes from "./routes/genie.js";
-import { createTimelineRouter } from "./routes/timeline.js";
-import { createSignalsRouter } from "./routes/signals.js";
-import { createLiveRouter } from "./routes/live.js";
-import { initSimulation } from "./simulation.js";
 import { createAgentsRouter } from "./routes/agents.js";
 import { createBriefRouter } from "./routes/brief.js";
 import { createDecisionsRouter } from "./routes/decisions.js";
@@ -35,17 +31,17 @@ async function startServer() {
      * On ne reconnecte PAS Databricks à chaque requête.
      */
     const databricks = await connectToDatabricks();
-    await initSimulation(databricks);
+
+    // V1 : les pages d'exploration
     app.use("/api", createOverviewRouter(databricks));
     app.use("/api", createRevenueRouter(databricks));
     app.use("/api", createPrioritiesRouter(databricks));
     app.use("/api", createRiskRouter(databricks));
     app.use("/api", createExpansionRouter(databricks));
     app.use("/api", createCustomersRouter(databricks));
-    app.use("/api", createTimelineRouter(databricks));
-    app.use("/api", createSignalsRouter(databricks));
     app.use("/api", genieRoutes);
-    app.use("/api", createLiveRouter());
+
+    // V2 : le Morning Brief et ses agents
     app.use("/api", createAgentsRouter(databricks));
     app.use("/api", createBriefRouter(databricks));
     app.use("/api", createDecisionsRouter(databricks));
