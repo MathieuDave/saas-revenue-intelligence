@@ -7,6 +7,7 @@ import RiskPage from "./pages/RiskPage";
 import ExpansionPage from "./pages/ExpansionPage";
 import Customer360Page from "./pages/Customer360Page";
 import CopilotPage from "./pages/CopilotPage";
+import TimeMachinePage from "./pages/TimeMachinePage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/expansion" element={<ExpansionPage />} />
           <Route path="/customers" element={<Customer360Page />} />
           <Route path="/copilot" element={<CopilotPage />} />
+                    <Route path="/time-machine" element={<TimeMachinePage />} />
         </Routes>
       </main>
     </div>

@@ -50,6 +50,12 @@ function Sidebar() {
         >
           Ask RevenueAI
         </NavLink>
+                <NavLink
+          to="/time-machine"
+          className={getNavClass}
+        >
+          Time Machine
+        </NavLink>
       </nav>
     </aside>
   );

@@ -1,0 +1,47 @@
+.time-machine-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.time-machine-button {
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.time-machine-button--primary {
+  min-width: 100px;
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.time-machine-slider {
+  flex: 1;
+  accent-color: #2563eb;
+}
+
+.time-machine-month {
+  min-width: 90px;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.time-machine-note {
+  margin-top: 16px;
+  color: #64748b;
+  font-size: 13px;
+}
