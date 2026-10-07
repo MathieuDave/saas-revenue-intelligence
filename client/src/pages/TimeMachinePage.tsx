@@ -20,6 +20,16 @@ type TimelineData = {
     negativeFeedback: number;
   };
 };
+type SignalsData = {
+  month: string;
+  summary: {
+    total: number;
+    risk: number;
+    opportunity: number;
+    critical: number;
+    mrrAtRisk: number;
+  };
+};
 
 const API_URL = "http://localhost:3000/api";
 const PLAY_SPEED_MS = 1500; // 1,5 seconde par mois
@@ -60,6 +70,7 @@ function TimeMachinePage() {
   const [data, setData] = useState<TimelineData | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState(false);
+  const [signals, setSignals] = useState<SignalsData | null>(null);
 
   const currentMonth = months[currentIndex];
   const lastIndex = months.length - 1;
@@ -105,6 +116,33 @@ function TimeMachinePage() {
       .catch((err) => {
         console.error("Timeline error:", err);
         if (!ignore) setError(true);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [currentMonth]);
+
+    // ---------------------------------------------------------
+  // 2b. Charger les signaux à chaque changement de mois
+  // ---------------------------------------------------------
+  useEffect(() => {
+    if (!currentMonth) return;
+
+    let ignore = false;
+
+    fetch(`${API_URL}/signals?month=${currentMonth}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Unable to retrieve signals");
+        }
+        return response.json();
+      })
+      .then((result: SignalsData) => {
+        if (!ignore) setSignals(result);
+      })
+      .catch((err) => {
+        console.error("Signals error:", err);
       });
 
     return () => {
@@ -237,6 +275,15 @@ function TimeMachinePage() {
           accent="orange"
         />
       </div>
+            {signals && signals.month === currentMonth ? (
+        <p className="time-machine-note">
+          🔔 {signals.summary.total} signals this month ·{" "}
+          {signals.summary.risk} risk · {signals.summary.opportunity} opportunity
+        </p>
+      ) : (
+        <p className="time-machine-note">🔔 Loading signals…</p>
+      )}
+      
 
       <p className="time-machine-note">
         Data snapshot · {formatMonth(data.month)} · Month {currentIndex + 1} of{" "}
