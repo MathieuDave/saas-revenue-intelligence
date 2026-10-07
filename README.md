@@ -140,6 +140,7 @@ RevenueAI supports conversational follow-up questions while querying the underly
 ### Ask RevenueAI
 
 ![Ask RevenueAI](docs/screenshots/ask-revenueai.png)
+
 ## Key Business Metrics
 
 Data snapshot: **August 31, 2026**

@@ -123,6 +123,7 @@ function CopilotPage() {
           Ask questions about revenue, customer risk,
           expansion opportunities and account priorities.
         </p>
+        
       </div>
 
       <div className="copilot-layout">
