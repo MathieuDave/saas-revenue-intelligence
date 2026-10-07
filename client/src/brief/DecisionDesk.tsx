@@ -29,7 +29,7 @@ import "./DecisionDesk.css";
 // =========================================================
 // LA PILE DE DÉCISIONS DU VP
 // Une carte à la fois. Les décisions sont enregistrées
-// dans Databricks (table vp_decisions).
+// dans Databricks (table vp_decisions), sauf en mode Replay.
 // =========================================================
 
 type OnDecide = (action: Action, person: string | null, due: string | null) => void;
@@ -69,6 +69,7 @@ function summarize(decision: Decision, item: DeskItem): string {
 
 export default function DecisionDesk({
   month,
+  replay,
   items,
   teamLoad,
   asOf,
@@ -76,6 +77,8 @@ export default function DecisionDesk({
   setDecisions,
 }: {
   month: string;
+  // Mode Replay : rien n'est enregistré, et pas d'enquête (l'agent connaîtrait le futur)
+  replay: boolean;
   items: DeskItem[];
   teamLoad: TeamMemberLoad[];
   asOf: string;
@@ -105,6 +108,16 @@ export default function DecisionDesk({
     const decision: Decision = { decisionId: null, id: current.id, action, person, due };
 
     setSyncError(null);
+
+    // En Replay, la décision reste dans le navigateur (simulation)
+    if (replay) {
+      setDecisions((previous) => [
+        ...previous,
+        { ...decision, decisionId: `replay-${previous.length}` },
+      ]);
+      return;
+    }
+
     setDecisions((previous) => [...previous, decision]);
 
     saveDecision(month, current, decision)
@@ -128,6 +141,8 @@ export default function DecisionDesk({
 
     setSyncError(null);
     setDecisions((previous) => previous.slice(0, -1));
+
+    if (replay) return; // rien à effacer côté serveur
 
     deleteDecision(decisionId).catch(() => {
       // Échec : on remet la décision et on le dit
@@ -184,7 +199,14 @@ export default function DecisionDesk({
           )}
           {/* key : React recrée la carte à chaque élément → l'animation rejoue
               et l'état de la carte (échéance, sélecteur) repart à zéro */}
-          <DeskCard key={current.id} item={current} team={team} asOf={asOf} onDecide={decide} />
+          <DeskCard
+            key={current.id}
+            item={current}
+            team={team}
+            asOf={asOf}
+            canInvestigate={!replay}
+            onDecide={decide}
+          />
         </div>
       ) : (
         <div className="desk__clear">
@@ -228,16 +250,26 @@ function DeskCard({
   item,
   team,
   asOf,
+  canInvestigate,
   onDecide,
 }: {
   item: DeskItem;
   team: TeamMemberLoad[];
   asOf: string;
+  canInvestigate: boolean;
   onDecide: OnDecide;
 }) {
   switch (item.kind) {
     case "risk":
-      return <RiskCard item={item} team={team} asOf={asOf} onDecide={onDecide} />;
+      return (
+        <RiskCard
+          item={item}
+          team={team}
+          asOf={asOf}
+          canInvestigate={canInvestigate}
+          onDecide={onDecide}
+        />
+      );
     case "tradeoff":
       return <TradeoffCard item={item} onDecide={onDecide} />;
     case "q4":
@@ -328,11 +360,13 @@ function RiskCard({
   item,
   team,
   asOf,
+  canInvestigate,
   onDecide,
 }: {
   item: Extract<DeskItem, { kind: "risk" }>;
   team: TeamMemberLoad[];
   asOf: string;
+  canInvestigate: boolean;
   onDecide: OnDecide;
 }) {
   const s = item.situation;
@@ -351,9 +385,7 @@ function RiskCard({
 
   const agentOwner = team.find((m) => m.name === report?.suggestedOwner)?.name;
   const suggestedOwner = agentOwner ?? s.suggestedOwner;
-  const suggestedReason = agentOwner
-    ? "picked by the Account Analyst"
-    : s.suggestedReason?.toLowerCase();
+  const suggestedReason = s.suggestedReason?.toLowerCase();
 
   return (
     <CardShell
@@ -421,7 +453,11 @@ function RiskCard({
                 <span className="dperson__load">
                   {member.situations} situations
                   {heavy ? ", already heavy" : ""}
-                  {suggested ? `. Suggested: ${suggestedReason}` : ""}
+                  {suggested
+                    ? agentOwner
+                      ? ". Picked by the Account Analyst"
+                      : `. Suggested: ${suggestedReason}`
+                    : ""}
                 </span>
               </button>
             );
@@ -430,14 +466,16 @@ function RiskCard({
       )}
 
       <div className="dcard__actions">
-        <button
-          type="button"
-          className="dbtn"
-          aria-expanded={investigating}
-          onClick={() => setInvestigating(!investigating)}
-        >
-          {investigating ? "Close investigation" : "Investigate"}
-        </button>
+        {canInvestigate && (
+          <button
+            type="button"
+            className="dbtn"
+            aria-expanded={investigating}
+            onClick={() => setInvestigating(!investigating)}
+          >
+            {investigating ? "Close investigation" : "Investigate"}
+          </button>
+        )}
         <button
           type="button"
           className="dbtn dbtn--primary"

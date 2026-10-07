@@ -21,7 +21,16 @@ export function formatDay(isoDate: string): string {
     timeZone: "UTC",
   });
 }
-
+// "2025-10-31" → "Friday, October 31, 2025"
+export function formatLongDay(isoDate: string): string {
+  return new Date(`${isoDate}T12:00:00Z`).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
 // "2026-09-07" → "Sep 7, 2026"
 export function formatDate(isoDate: string): string {
   return new Date(`${isoDate}T12:00:00Z`).toLocaleDateString("en-US", {
