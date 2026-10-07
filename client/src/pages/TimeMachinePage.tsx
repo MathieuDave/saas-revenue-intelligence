@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 
 import KpiCard from "../components/KpiCard";
 import PageLoadingState from "../components/PageLoadingState";
-
+import SituationFeed from "../components/SituationFeed";
+import type { Situation } from "../components/SituationFeed";
+import type { SignalEvent } from "../components/SignalFeed";
 import "./TimeMachinePage.css";
 
 type TimelineData = {
@@ -27,8 +29,12 @@ type SignalsData = {
     risk: number;
     opportunity: number;
     critical: number;
+    situations: number;
+    compoundingRisk: number;
     mrrAtRisk: number;
   };
+  events: SignalEvent[];
+  situations: Situation[];
 };
 
 const API_URL = "http://localhost:3000/api";
@@ -275,16 +281,20 @@ function TimeMachinePage() {
           accent="orange"
         />
       </div>
-            {signals && signals.month === currentMonth ? (
-        <p className="time-machine-note">
-          🔔 {signals.summary.total} signals this month ·{" "}
-          {signals.summary.risk} risk · {signals.summary.opportunity} opportunity
-        </p>
+              {signals && signals.month === currentMonth ? (
+        <div style={{ marginTop: 24 }}>
+                    <p className="time-machine-note">
+            🔔 {signals.summary.situations} accounts need attention ·{" "}
+            {signals.summary.compoundingRisk} compounding risk ·{" "}
+            {signals.summary.total} signals
+          </p>
+
+          <SituationFeed situations={signals.situations} limit={10} />
+        </div>
       ) : (
         <p className="time-machine-note">🔔 Loading signals…</p>
       )}
       
-
       <p className="time-machine-note">
         Data snapshot · {formatMonth(data.month)} · Month {currentIndex + 1} of{" "}
         {months.length}
