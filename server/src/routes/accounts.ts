@@ -426,6 +426,14 @@ export async function getAccountEvidence(
 // On ne fait jamais confiance au client : tout est vérifié.
 // =========================================================
 
+// La date du brief envoyée avec la question (par défaut : la fin des données)
+function readAsOf(body: unknown): string | null {
+  const value =
+    typeof body === "object" && body !== null ? (body as Record<string, unknown>).asOf : undefined;
+  if (value === undefined) return AS_OF_DATE;
+  return typeof value === "string" && DATE.test(value) ? value : null;
+}
+
 function validateConversation(body: unknown): ChatTurn[] | string {
   if (typeof body !== "object" || body === null) return "The body must be a JSON object.";
   const messages = (body as Record<string, unknown>).messages;
@@ -484,7 +492,7 @@ export function createAccountsRouter(databricks: DatabricksClient) {
 
   // =========================================================
   // ROUTE : POST /api/accounts/C1367/ask  (réponse en flux SSE)
-  // Body : { messages: [{ role: "user", content: "Why did usage fall?" }, ...] }
+  // Body : { asOf: "2026-08-31", messages: [{ role: "user", content: "Why did usage fall?" }, ...] }
   // =========================================================
 
   router.post("/accounts/:customerId/ask", async (req, res) => {
@@ -501,10 +509,16 @@ export function createAccountsRouter(databricks: DatabricksClient) {
       return;
     }
 
-    // 2. Le dossier du compte, à la date de l'agent : il le reçoit AVANT de répondre
+    const asOf = readAsOf(req.body);
+    if (!asOf) {
+      res.status(400).json({ error: "'asOf' must look like 2026-08-31." });
+      return;
+    }
+
+    // 2. Le dossier du compte, à la date du brief : l'agent le reçoit AVANT de répondre
     let evidence: AccountEvidence | null;
     try {
-      evidence = await getAccountEvidence(databricks, customerId, AS_OF_DATE);
+      evidence = await getAccountEvidence(databricks, customerId, asOf);
     } catch (error) {
       console.error("Account chat error (evidence):", error);
       res.status(500).json({ error: "Unable to load the account data." });

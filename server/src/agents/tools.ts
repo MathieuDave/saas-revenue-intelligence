@@ -8,8 +8,8 @@ type Row = Record<string, unknown>;
 
 const SCHEMA = "workspace.saas_revenue_intelligence";
 
-// La « date du jour » pour l'agent : la fin de tes données.
-// Plus tard, on la reliera à l'horloge de simulation.
+// La date par défaut pour l'agent : la fin des données.
+// Chaque enquête reçoit sa propre date (celle du brief) : l'agent ne voit jamais après.
 export const AS_OF_DATE = "2026-08-31";
 
 // =========================================================
@@ -70,7 +70,7 @@ type Tool = {
 
 export type ToolRegistry = Record<string, Tool>;
 
-export function createTools(databricks: DatabricksClient): ToolRegistry {
+export function createTools(databricks: DatabricksClient, asOf: string = AS_OF_DATE): ToolRegistry {
   return {
     // ---------------------------------------------------------
     get_customer_profile: {
@@ -102,7 +102,7 @@ export function createTools(databricks: DatabricksClient): ToolRegistry {
            AND h.month = DATE_TRUNC('MONTH', CAST(:as_of AS TIMESTAMP))
           WHERE c.customer_id = :customer_id
           `,
-          { customer_id: String(args.customer_id), as_of: AS_OF_DATE }
+          { customer_id: String(args.customer_id), as_of: asOf }
         );
 
         const row = rows[0];
@@ -155,7 +155,7 @@ export function createTools(databricks: DatabricksClient): ToolRegistry {
             AND month <= CAST(:as_of AS TIMESTAMP)
           ORDER BY month DESC
           `,
-          { customer_id: String(args.customer_id), as_of: AS_OF_DATE }
+          { customer_id: String(args.customer_id), as_of: asOf }
         );
 
         return rows.slice(0, months).map((row) => ({
@@ -202,8 +202,8 @@ export function createTools(databricks: DatabricksClient): ToolRegistry {
           `,
           {
             customer_id: String(args.customer_id),
-            start_date: daysBefore(AS_OF_DATE, days),
-            as_of: AS_OF_DATE,
+            start_date: daysBefore(asOf, days),
+            as_of: asOf,
           }
         );
 
@@ -248,7 +248,7 @@ export function createTools(databricks: DatabricksClient): ToolRegistry {
             AND CAST(feedback_date AS DATE) <= CAST(:as_of AS DATE)
           ORDER BY feedback_date DESC
           `,
-          { customer_id: String(args.customer_id), as_of: AS_OF_DATE }
+          { customer_id: String(args.customer_id), as_of: asOf }
         );
 
         return rows.slice(0, limit).map((row) => ({

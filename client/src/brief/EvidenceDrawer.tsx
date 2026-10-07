@@ -411,7 +411,7 @@ export default function EvidenceDrawer({
               </p>
 
               {/* La conversation avec l'agent, sur ce compte seulement */}
-              <AccountChat customerId={customerId} companyName={companyName} />
+              <AccountChat customerId={customerId} companyName={companyName} asOf={asOf} />
             </>
           )}
         </div>

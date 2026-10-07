@@ -1,6 +1,6 @@
 import type { connectToDatabricks } from "../databricks.js";
 import { callModel, getReasoning, getText, type ChatMessage } from "../llm.js";
-import { createTools, getToolDefinitions, runTool } from "./tools.js";
+import { AS_OF_DATE, createTools, getToolDefinitions, runTool } from "./tools.js";
 
 type DatabricksClient =
   Awaited<ReturnType<typeof connectToDatabricks>>;
@@ -28,9 +28,10 @@ export async function runAgentLoop(
   databricks: DatabricksClient,
   messages: ChatMessage[],
   hooks: LoopHooks = {},
+  asOf: string = AS_OF_DATE, // la date du brief : les outils ne lisent rien après
   maxSteps: number = DEFAULT_MAX_STEPS
 ) {
-  const tools = createTools(databricks);
+  const tools = createTools(databricks, asOf);
   const toolDefinitions = getToolDefinitions(tools);
   let totalTokens = 0;
 

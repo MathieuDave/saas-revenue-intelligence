@@ -20,6 +20,7 @@ export type ChatEvent =
 // chacun avec une ligne « event: … » et une ligne « data: … ».
 export async function askAccount(
   customerId: string,
+  asOf: string,
   messages: ChatTurn[],
   onEvent: (event: ChatEvent) => void,
   signal: AbortSignal
@@ -27,7 +28,7 @@ export async function askAccount(
   const response = await fetch(`${API_URL}/accounts/${customerId}/ask`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ asOf, messages }),
     signal,
   });
 

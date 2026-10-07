@@ -77,6 +77,46 @@
   border-radius: 2px;
 }
 
+/* ---------- D'un matin à l'autre ---------- */
+
+.brief__mornings {
+  display: flex;
+  gap: 16px;
+}
+
+.brief__morning {
+  color: var(--ink-soft);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.brief__morning:hover {
+  color: var(--ink);
+}
+
+.brief__morning:focus-visible,
+.brief__past a:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* Un matin passé : un bandeau discret, mais impossible à manquer */
+.brief__past {
+  margin: 0 0 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fbefdc;
+  color: #6b3f06;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.brief__past a {
+  color: inherit;
+  font-weight: 600;
+}
+
 @media (max-width: 600px) {
   .brief__date {
     order: 3;

@@ -433,7 +433,7 @@ function RiskCard({
       </AnimatePresence>
 
       {investigating && (
-        <AnalystPanel customerId={s.customerId} onReport={setReport} />
+        <AnalystPanel customerId={s.customerId} asOf={asOf} onReport={setReport} />
       )}
 
       {/* L'échéance : un responsable + une date = un plan */}

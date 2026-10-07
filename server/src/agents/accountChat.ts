@@ -1,14 +1,13 @@
 import type { connectToDatabricks } from "../databricks.js";
 import type { ChatMessage } from "../llm.js";
 import type { AccountEvidence } from "../routes/accounts.js";
-import { AS_OF_DATE } from "./tools.js";
 import { runAgentLoop } from "./agentLoop.js";
 
 type DatabricksClient =
   Awaited<ReturnType<typeof connectToDatabricks>>;
 
 // Les fenêtres minimales si l'agent appelle lui-même ses outils (celles du tiroir)
-const MIN_TICKET_DAYS = 184; // du 1er mars au 31 août
+const MIN_TICKET_DAYS = 184; // 6 mois (du 1er mars au 31 août pour le brief d'août)
 const MIN_USAGE_MONTHS = 6;
 
 // Un échange déjà terminé, renvoyé par le navigateur à chaque question
@@ -97,7 +96,7 @@ function systemPrompt(evidence: AccountEvidence): string {
 You are the Account Analyst at RevenueAI, a B2B SaaS company that sells a data and analytics platform.
 You are helping the VP Revenue of RevenueAI understand the data of ONE customer: ${customerId}.
 
-Today is ${AS_OF_DATE}. Nothing after this date exists for you.
+Today is ${evidence.asOf}. Nothing after this date exists for you.
 
 The account file below is exactly what the VP sees on screen: the last 6 months of usage and revenue, every ticket and feedback in that period, and the signals your agents raised. Answer from this file first. Use your tools only for something the file does not contain, for example an older period.
 
@@ -160,7 +159,7 @@ export async function runAccountChat(
       }
       return JSON.stringify(args);
     },
-  });
+  }, evidence.asOf);
 
   // Le modèle utilise parfois des espaces et des tirets « spéciaux » (insécables) :
   // on les remplace par des caractères simples, lisibles partout

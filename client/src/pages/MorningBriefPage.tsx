@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
 
 import type { BriefResponse, QuarterGoal } from "../brief/types";
@@ -26,8 +26,35 @@ import "./MorningBriefPage.css";
 
 const API_URL = "http://localhost:3000/api";
 
-// Le « matin » de la démo : le brief du 31 août 2026
-const BRIEF_MONTH = "2026-08";
+// Les matins disponibles : les données vont de 2025 au 31 août 2026.
+// Le brief s'ouvre sur le dernier matin, ou sur celui demandé dans l'adresse :
+// /brief?month=2026-07 → le matin du 31 juillet 2026
+const LATEST_MONTH = "2026-08";
+const EARLIEST_MONTH = "2025-04";
+
+// "2026-08", -1 → "2026-07"
+function shiftMonth(month: string, delta: number): string {
+  const [year, m] = month.split("-").map(Number);
+  const date = new Date(Date.UTC(year ?? 2026, (m ?? 1) - 1 + delta, 1));
+  return date.toISOString().slice(0, 7);
+}
+
+// "2026-07" → "July 31" (le dernier jour du mois : le matin du brief)
+function morningLabel(month: string): string {
+  const [year, m] = month.split("-").map(Number);
+  return new Date(Date.UTC(year ?? 2026, m ?? 1, 0)).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+// Le mois demandé dans l'adresse, s'il est valide ; sinon le dernier matin
+function readMonth(value: string | null): string {
+  if (!value || !/^\d{4}-\d{2}$/.test(value)) return LATEST_MONTH;
+  if (value > LATEST_MONTH || value < EARLIEST_MONTH) return LATEST_MONTH;
+  return value;
+}
 
 // =========================================================
 // LE TEXTE DU BRIEF (écrit à partir des données)
@@ -165,6 +192,11 @@ function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
 // =========================================================
 
 function MorningBriefPage() {
+  // Le matin affiché vient de l'adresse (?month=2026-07)
+  const [searchParams] = useSearchParams();
+  const month = readMonth(searchParams.get("month"));
+  const isLatest = month === LATEST_MONTH;
+
   const [brief, setBrief] = useState<BriefResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -196,8 +228,13 @@ function MorningBriefPage() {
   useEffect(() => {
     const controller = new AbortController();
 
+    // Nouveau matin : on repart d'une page vide (le squelette s'affiche)
+    setBrief(null);
+    setError(null);
+    setDecisions([]);
+
     // Le brief et les décisions déjà prises arrivent en même temps
-    const loadBrief = fetch(`${API_URL}/brief?month=${BRIEF_MONTH}`, {
+    const loadBrief = fetch(`${API_URL}/brief?month=${month}`, {
       signal: controller.signal,
     }).then((response) => {
       if (!response.ok) {
@@ -206,7 +243,7 @@ function MorningBriefPage() {
       return response.json() as Promise<BriefResponse>;
     });
 
-    Promise.all([loadBrief, fetchDecisions(BRIEF_MONTH, controller.signal)])
+    Promise.all([loadBrief, fetchDecisions(month, controller.signal)])
       .then(([loadedBrief, savedDecisions]) => {
         setBrief(loadedBrief);
         setDecisions(savedDecisions);
@@ -220,9 +257,9 @@ function MorningBriefPage() {
         console.error(err);
       });
 
-    // Nettoyage : si on quitte la page, on annule la requête
+    // Nettoyage : si on quitte la page (ou change de matin), on annule la requête
     return () => controller.abort();
-  }, []);
+  }, [month]);
 
   // Ce qui arrive sur le bureau du VP (risques, arbitrage, T4, croissance)
   const desk = brief ? buildDesk(brief) : [];
@@ -239,10 +276,34 @@ function MorningBriefPage() {
         <header className="brief__topbar">
           <span className="brief__brand">RevenueAI</span>
           {brief && <span className="brief__date">{formatDay(brief.asOf)}</span>}
+
+          {/* Naviguer d'un matin à l'autre */}
+          <nav className="brief__mornings" aria-label="Other mornings">
+            {month > EARLIEST_MONTH && (
+              <Link to={`/brief?month=${shiftMonth(month, -1)}`} className="brief__morning">
+                ← {morningLabel(shiftMonth(month, -1))}
+              </Link>
+            )}
+            {!isLatest && (
+              <Link to={`/brief?month=${shiftMonth(month, 1)}`} className="brief__morning">
+                {morningLabel(shiftMonth(month, 1))} →
+              </Link>
+            )}
+          </nav>
+
           <Link to="/" className="brief__explore">
             Explore the data
           </Link>
         </header>
+
+        {/* Un matin passé : on le dit clairement */}
+        {!isLatest && (
+          <p className="brief__past">
+            You are looking at a past morning, {morningLabel(month)}. Your agents only knew what had
+            happened by then.{" "}
+            <Link to="/brief">Back to the latest morning</Link>
+          </p>
+        )}
 
         {error && <p className="brief__status">{error}</p>}
 
@@ -257,7 +318,8 @@ function MorningBriefPage() {
         )}
 
         {ready && (
-          <div className="brief__cols">
+          // key : changer de matin recrée toute la page (pile, cartes, sections)
+          <div className="brief__cols" key={brief.month}>
             <main className="brief__main">
               <section className="brief__opening">
                 <h1 className="brief__headline">

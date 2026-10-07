@@ -52,9 +52,11 @@ function oneLine(text: string): string {
 
 export default function AnalystPanel({
   customerId,
+  asOf,
   onReport,
 }: {
   customerId: string;
+  asOf: string; // la date du brief : l'agent ne lit rien après
   onReport: (report: AccountReport) => void;
 }) {
   const [steps, setSteps] = useState<AgentStep[]>([]);
@@ -63,7 +65,7 @@ export default function AnalystPanel({
 
   useEffect(() => {
     const source = new EventSource(
-      `${API_URL}/agents/account-analyst/${customerId}/stream`
+      `${API_URL}/agents/account-analyst/${customerId}/stream?asOf=${asOf}`
     );
 
     source.addEventListener("step", (event) => {
@@ -92,7 +94,7 @@ export default function AnalystPanel({
     return () => source.close();
     // onReport change à chaque rendu : on ne relance l'enquête que si le client change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerId]);
+  }, [customerId, asOf]);
 
   // Une ligne par source lue, cochée quand le résultat est arrivé
   const sources = steps

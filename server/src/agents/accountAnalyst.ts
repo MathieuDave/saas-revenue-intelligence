@@ -27,11 +27,12 @@ export type AccountReport = {
 // LE PROMPT SYSTÈME : le « contrat de travail » de l'agent
 // =========================================================
 
-const SYSTEM_PROMPT = `
+function systemPrompt(asOf: string): string {
+  return `
 You are the Account Analyst at RevenueAI, a B2B SaaS company that sells a data and analytics platform.
 You work for the VP Revenue of RevenueAI. Your job is to protect and grow RevenueAI's recurring revenue.
 
-Today is ${AS_OF_DATE}.
+Today is ${asOf}. Nothing after this date exists for you.
 
 How you work:
 - Investigate the customer with your tools BEFORE concluding. Look at the profile, the usage history, the support tickets and the feedback.
@@ -54,6 +55,7 @@ When you are done investigating, answer with ONLY a JSON object, no other text, 
   "email": { "subject": "short subject", "body": "a short email to the customer's main contact" }
 }
 `.trim();
+}
 
 // =========================================================
 // LIRE LE JSON FINAL (le modèle l'entoure parfois de ```json ... ```)
@@ -79,10 +81,11 @@ function parseReport(text: string): AccountReport | null {
 export async function runAccountAnalyst(
   databricks: DatabricksClient,
   customerId: string,
-  onStep: (step: AgentStep) => void
+  onStep: (step: AgentStep) => void,
+  asOf: string = AS_OF_DATE // la date du brief
 ) {
   const messages: ChatMessage[] = [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: systemPrompt(asOf) },
     {
       role: "user",
       content: `Investigate customer ${customerId}. What is happening, and what should we do?`,
@@ -93,7 +96,7 @@ export async function runAccountAnalyst(
     onThinking: (text) => onStep({ type: "thinking", text }),
     onToolCall: (tool, args) => onStep({ type: "tool_call", tool, arguments: args }),
     onToolResult: (tool, result) => onStep({ type: "tool_result", tool, result }),
-  });
+  }, asOf);
 
   return {
     report: parseReport(finalText),

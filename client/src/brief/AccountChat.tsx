@@ -37,9 +37,11 @@ type Exchange = {
 export default function AccountChat({
   customerId,
   companyName,
+  asOf,
 }: {
   customerId: string;
   companyName: string;
+  asOf: string; // la date du brief
 }) {
   const [thread, setThread] = useState<Exchange[]>([]);
   const [draft, setDraft] = useState("");
@@ -92,6 +94,7 @@ export default function AccountChat({
     try {
       await askAccount(
         customerId,
+        asOf,
         messages,
         (event) => {
           if (event.type === "step") {
