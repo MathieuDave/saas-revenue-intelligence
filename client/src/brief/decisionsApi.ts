@@ -32,6 +32,14 @@ export async function fetchDecisions(
   }));
 }
 
+// Le serveur refuse une 2e décision pour la même carte du même matin (409)
+export class AlreadyDecidedError extends Error {
+  constructor() {
+    super("This card already has a decision for this morning.");
+    this.name = "AlreadyDecidedError";
+  }
+}
+
 // Enregistrer une décision ; renvoie l'identifiant créé par le serveur
 export async function saveDecision(
   month: string,
@@ -50,6 +58,7 @@ export async function saveDecision(
       due: decision.due,
     }),
   });
+  if (response.status === 409) throw new AlreadyDecidedError();
   if (!response.ok) throw new Error(`API error ${response.status}`);
 
   const saved = (await response.json()) as { decisionId: string };

@@ -22,7 +22,7 @@ import {
   type Decision,
   type DeskItem,
 } from "./deskItems";
-import { deleteDecision, saveDecision } from "./decisionsApi";
+import { AlreadyDecidedError, deleteDecision, saveDecision } from "./decisionsApi";
 import AnalystPanel, { cleanItem, type AccountReport } from "./AnalystPanel";
 import EvidenceDrawer from "./EvidenceDrawer";
 import "./DecisionDesk.css";
@@ -103,10 +103,18 @@ export default function DecisionDesk({
 
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  // Les cartes en cours d'enregistrement. Un ref (et non un state) : il est lu
+  // tout de suite, même par la carte qui s'efface encore pendant son animation.
+  const savingIds = useRef(new Set<string>());
+
   // Interface « optimiste » : l'écran change tout de suite,
   // puis on enregistre dans Databricks en arrière-plan.
   const decide: OnDecide = (action, person, due) => {
     if (!current) return;
+    // Garde-fou : un 2e clic sur la même carte (double-clic, carte qui s'efface) est ignoré
+    if (decidedIds.has(current.id) || savingIds.current.has(current.id)) return;
+    savingIds.current.add(current.id);
+    const itemId = current.id;
     const decision: Decision = { decisionId: null, id: current.id, action, person, due };
 
     setSyncError(null);
@@ -119,11 +127,16 @@ export default function DecisionDesk({
           previous.map((d) => (d === decision ? { ...d, decisionId } : d))
         )
       )
-      .catch(() => {
+      .catch((error: unknown) => {
         // Échec : on retire la décision de l'écran et on le dit
         setDecisions((previous) => previous.filter((d) => d !== decision));
-        setSyncError("That decision could not be saved. Check the backend and try again.");
-      });
+        setSyncError(
+          error instanceof AlreadyDecidedError
+            ? "This card was already decided, maybe in another tab. Refresh the page to see it."
+            : "That decision could not be saved. Check the backend and try again."
+        );
+      })
+      .finally(() => savingIds.current.delete(itemId));
   };
 
   function undo() {

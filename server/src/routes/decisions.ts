@@ -147,31 +147,64 @@ export function createDecisionsRouter(databricks: DatabricksClient) {
     }
 
     const decisionId = randomUUID();
+    const params = {
+      decisionId,
+      month: decision.month,
+      itemId: decision.itemId,
+      itemKind: decision.itemKind,
+      action: decision.action,
+      person: decision.person ?? "", // les paramètres sont du texte : '' = pas de valeur
+      due: decision.due ?? "",
+    };
 
     try {
-      // Les paramètres sont toujours du texte : '' veut dire « pas de valeur »
+      // 1. MERGE = « insérer SEULEMENT si cette carte n'a pas déjà une décision ce matin-là ».
+      //    Une seule instruction : même si la requête arrive deux fois, la carte n'est décidée qu'une fois.
       await run(
         databricks,
         `
-        INSERT INTO ${TABLE}
+        MERGE INTO ${TABLE} AS t
+        USING (
+          SELECT
+            :decisionId AS decision_id,
+            :month AS brief_month,
+            :itemId AS item_id,
+            :itemKind AS item_kind,
+            :action AS action,
+            NULLIF(:person, '') AS person,
+            CAST(NULLIF(:due, '') AS DATE) AS due_date
+        ) AS s
+        ON t.brief_month = s.brief_month AND t.item_id = s.item_id
+        WHEN NOT MATCHED THEN INSERT
           (decision_id, brief_month, item_id, item_kind, action, person, due_date, decided_at)
-        VALUES (
-          :decisionId, :month, :itemId, :itemKind, :action,
-          NULLIF(:person, ''),
-          CAST(NULLIF(:due, '') AS DATE),
-          current_timestamp()
-        )
+        VALUES
+          (s.decision_id, s.brief_month, s.item_id, s.item_kind, s.action, s.person, s.due_date, current_timestamp())
         `,
-        {
-          decisionId,
-          month: decision.month,
-          itemId: decision.itemId,
-          itemKind: decision.itemKind,
-          action: decision.action,
-          person: decision.person ?? "",
-          due: decision.due ?? "",
-        }
+        params
       );
+
+      // 2. Quelle décision est maintenant enregistrée pour cette carte ?
+      const rows = await run(
+        databricks,
+        `
+        SELECT decision_id
+        FROM ${TABLE}
+        WHERE brief_month = :month AND item_id = :itemId
+        ORDER BY decided_at
+        LIMIT 1
+        `,
+        { month: decision.month, itemId: decision.itemId }
+      );
+      const savedId = rows[0] ? String(rows[0].decision_id) : null;
+
+      // 3. Si ce n'est pas la nôtre, la carte était déjà décidée : 409 Conflict
+      if (savedId !== decisionId) {
+        res.status(409).json({
+          error: "This card already has a decision for this morning.",
+          decisionId: savedId,
+        });
+        return;
+      }
 
       res.status(201).json({ decisionId, ...decision });
     } catch (error) {
