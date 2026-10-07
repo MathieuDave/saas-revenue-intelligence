@@ -12,6 +12,7 @@ import { createExpansionRouter } from "./routes/expansion.js";
 import { createCustomersRouter } from "./routes/customers.js";
 import genieRoutes from "./routes/genie.js";
 import { createTimelineRouter } from "./routes/timeline.js";
+import { createSignalsRouter } from "./routes/signals.js";
 
 const app = express();
 const PORT = 3000;
@@ -36,6 +37,7 @@ async function startServer() {
     app.use("/api", createExpansionRouter(databricks));
     app.use("/api", createCustomersRouter(databricks));
     app.use("/api", createTimelineRouter(databricks));
+    app.use("/api", createSignalsRouter(databricks));
     app.use("/api", genieRoutes);
 
     app.listen(PORT, () => {
