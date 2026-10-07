@@ -1,0 +1,127 @@
+/* =========================================================
+   L'ENQUÊTE DE L'AGENT — le monde des agents, la nuit
+   ========================================================= */
+
+.analyst {
+  margin-top: 22px;
+  padding: 20px 22px;
+  border-radius: 14px;
+  background: var(--night);
+  color: #dfe6f5;
+  animation: dcard-rise 0.35s ease;
+}
+
+.analyst__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  font-size: 14px;
+}
+
+.analyst__name {
+  color: #fff;
+  font-weight: 600;
+}
+
+.analyst__status {
+  color: #9fb0d3;
+}
+
+.analyst__sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.analyst__source {
+  padding: 4px 12px;
+  border: 1px solid #2a3a63;
+  border-radius: 999px;
+  color: #9fb0d3;
+  font-size: 13px;
+}
+
+.analyst__source--done {
+  border-color: #5d74a8;
+  color: #fff;
+}
+
+.analyst__thought {
+  margin: 14px 0 0;
+  color: #a9b7d6;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.analyst__pulse {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: analyst-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes analyst-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.analyst__report {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #2a3a63;
+}
+
+.analyst__diagnosis {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-voice);
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.analyst__plan {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: #cfd8ea;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.analyst__email {
+  margin-top: 14px;
+  color: #a9b7d6;
+  font-size: 14px;
+}
+
+.analyst__email summary {
+  cursor: pointer;
+  color: #cfd8ea;
+}
+
+.analyst__email p {
+  margin: 8px 0 0;
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analyst,
+  .analyst__pulse {
+    animation: none;
+  }
+}

@@ -23,12 +23,13 @@ import {
   type DeskItem,
 } from "./deskItems";
 import { deleteDecision, saveDecision } from "./decisionsApi";
+import AnalystPanel, { cleanItem, type AccountReport } from "./AnalystPanel";
 import "./DecisionDesk.css";
 
 // =========================================================
 // LA PILE DE DÉCISIONS DU VP
-// Une carte à la fois. Pour l'instant, les décisions vivent
-// dans le navigateur ; l'étape 7 les enverra à Databricks.
+// Une carte à la fois. Les décisions sont enregistrées
+// dans Databricks (table vp_decisions).
 // =========================================================
 
 type OnDecide = (action: Action, person: string | null, due: string | null) => void;
@@ -82,7 +83,6 @@ export default function DecisionDesk({
   decisions: Decision[];
   setDecisions: Dispatch<SetStateAction<Decision[]>>;
 }) {
-
   // Tout le reste se calcule à partir de la liste des décisions
   const decidedIds = new Set(decisions.map((d) => d.id));
   const pending = items.filter((i) => !decidedIds.has(i.id));
@@ -96,7 +96,7 @@ export default function DecisionDesk({
   const last = decisions.at(-1);
   const lastItem = last ? items.find((i) => i.id === last.id) : undefined;
 
-   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   // Interface « optimiste » : l'écran change tout de suite,
   // puis on enregistre dans Databricks en arrière-plan.
@@ -203,7 +203,7 @@ export default function DecisionDesk({
             ? summarize(last, lastItem)
             : "Each decision gets an owner and a deadline, and updates your team."}
         </span>
-                {last && last.decisionId === null && <span>Saving…</span>}
+        {last && last.decisionId === null && <span>Saving…</span>}
         {last && last.decisionId !== null && (
           <button type="button" className="desk__undo" onClick={undo}>
             Undo
@@ -339,8 +339,21 @@ function RiskCard({
   const dues = dueOptions(s, asOf);
   const [dueIndex, setDueIndex] = useState(0);
   const [picking, setPicking] = useState(false);
+  const [investigating, setInvestigating] = useState(false);
+  const [report, setReport] = useState<AccountReport | null>(null);
 
   const due = dues[dueIndex] ?? null;
+
+  // Après l'enquête, c'est l'agent qui parle (et plus le playbook)
+  const firstStep = report?.plan[0];
+  const recWho = firstStep ? "Account Analyst suggests" : "Playbook suggests";
+  const rec = firstStep ? cleanItem(firstStep) : playbook(s);
+
+  const agentOwner = team.find((m) => m.name === report?.suggestedOwner)?.name;
+  const suggestedOwner = agentOwner ?? s.suggestedOwner;
+  const suggestedReason = agentOwner
+    ? "picked by the Account Analyst"
+    : s.suggestedReason?.toLowerCase();
 
   return (
     <CardShell
@@ -354,9 +367,13 @@ function RiskCard({
       why={whyOnDesk(s)}
       ifNothing={ifNothingHappens(s)}
       evidence={s.evidence}
-      recWho="Playbook suggests"
-      rec={playbook(s)}
+      recWho={recWho}
+      rec={rec}
     >
+      {investigating && (
+        <AnalystPanel customerId={s.customerId} onReport={setReport} />
+      )}
+
       {/* L'échéance : un responsable + une date = un plan */}
       <div className="dcard__due">
         <div className="dcard__label" id={`due-${s.customerId}`}>
@@ -385,7 +402,7 @@ function RiskCard({
         <div className="dcard__picker">
           {team.map((member) => {
             const heavy = member.situations >= HEAVY_LOAD;
-            const suggested = member.name === s.suggestedOwner;
+            const suggested = member.name === suggestedOwner;
             const classes = [
               "dperson",
               heavy ? "dperson--heavy" : "",
@@ -404,7 +421,7 @@ function RiskCard({
                 <span className="dperson__load">
                   {member.situations} situations
                   {heavy ? ", already heavy" : ""}
-                  {suggested ? `. Suggested: ${s.suggestedReason?.toLowerCase()}` : ""}
+                  {suggested ? `. Suggested: ${suggestedReason}` : ""}
                 </span>
               </button>
             );
@@ -413,6 +430,14 @@ function RiskCard({
       )}
 
       <div className="dcard__actions">
+        <button
+          type="button"
+          className="dbtn"
+          aria-expanded={investigating}
+          onClick={() => setInvestigating(!investigating)}
+        >
+          {investigating ? "Close investigation" : "Investigate"}
+        </button>
         <button
           type="button"
           className="dbtn dbtn--primary"
