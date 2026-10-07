@@ -1,5 +1,5 @@
 import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-
+import { AnimatePresence, motion } from "motion/react";
 import type { TeamMemberLoad } from "./types";
 import {
   addDays,
@@ -25,6 +25,7 @@ import {
 import { deleteDecision, saveDecision } from "./decisionsApi";
 import AnalystPanel, { cleanItem, type AccountReport } from "./AnalystPanel";
 import "./DecisionDesk.css";
+import { EASE } from "./motionKit";
 
 // =========================================================
 // LA PILE DE DÉCISIONS DU VP
@@ -187,15 +188,21 @@ export default function DecisionDesk({
           {pending.length > 2 && (
             <div className="desk__edge desk__edge--2" aria-hidden="true" />
           )}
-          {/* key : React recrée la carte à chaque élément → l'animation rejoue
-              et l'état de la carte (échéance, sélecteur) repart à zéro */}
-          <DeskCard
-            key={current.id}
-            item={current}
-            team={team}
-            asOf={asOf}
-            onDecide={decide}
-          />
+                   {/* AnimatePresence : la carte décidée glisse vers le haut et s'efface,
+              PUIS la suivante arrive (mode="wait"). La key change à chaque
+              élément : l'état de la carte (échéance, sélecteur) repart à zéro. */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={current.id}
+              className="desk__current"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -28 }}
+              transition={{ duration: 0.28, ease: EASE }}
+            >
+              <DeskCard item={current} team={team} asOf={asOf} onDecide={decide} />
+            </motion.div>
+          </AnimatePresence>
         </div>
       ) : (
         <div className="desk__clear">

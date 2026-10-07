@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { MotionConfig, motion } from "motion/react";
 
 import type { BriefResponse, QuarterGoal } from "../brief/types";
 import {
@@ -13,6 +14,9 @@ import CalmSections from "../brief/CalmSections";
 import NightPanel from "../brief/NightPanel";
 import { fetchDecisions } from "../brief/decisionsApi";
 import TrustLine from "../brief/TrustLine";
+import BootSequence, { BriefSkeleton } from "../brief/BootSequence";
+import { CountUp, EASE, Reveal } from "../brief/motionKit";
+import { markIntroPlayed, shouldPlayIntro, todayKey } from "../brief/intro";
 import {
   buildDesk,
   liveTeamLoad,
@@ -66,11 +70,25 @@ function buildLede(brief: BriefResponse, deskCount: number): string {
   );
 }
 
+// Les étapes de l'ouverture : ce que le système vient vraiment de faire
+function buildBootLines(brief: BriefResponse, deskCount: number): string[] {
+  const month = new Date(`${brief.asOf}T12:00:00Z`).toLocaleDateString("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
+  return [
+    "Reading your accounts…",
+    `${brief.counts.total} accounts changed in ${month}`,
+    `${brief.counts.team} routed to your team`,
+    deskCount === 1 ? "1 decision ready" : `${deskCount} decisions ready`,
+  ];
+}
+
 // =========================================================
 // LA PISTE DE L'OBJECTIF
 // =========================================================
 
-function GoalTrack({ goal }: { goal: QuarterGoal }) {
+function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
   if (!goal.available) return null;
 
   const goalArr = goal.goalArr ?? 0;
@@ -94,27 +112,44 @@ function GoalTrack({ goal }: { goal: QuarterGoal }) {
           style={{ left: pct(goalArr) }}
         >
           Goal
-          <strong>{formatMoney(goalArr)}</strong>
+          <strong>
+            <CountUp value={goalArr} play={play} delay={0.5} format={formatMoney} />
+          </strong>
         </span>
       </div>
 
+      {/* Les barres se remplissent pendant l'ouverture */}
       <div className="goal-track__rail" aria-hidden="true">
-        <div className="goal-track__forecast" style={{ width: pct(forecast) }} />
-        <div className="goal-track__booked" style={{ width: pct(booked) }} />
+        <motion.div
+          className="goal-track__forecast"
+          initial={{ width: play ? "0%" : pct(forecast) }}
+          animate={{ width: pct(forecast) }}
+          transition={{ duration: 1, delay: play ? 0.7 : 0, ease: EASE }}
+        />
+        <motion.div
+          className="goal-track__booked"
+          initial={{ width: play ? "0%" : pct(booked) }}
+          animate={{ width: pct(booked) }}
+          transition={{ duration: 0.9, delay: play ? 0.5 : 0, ease: EASE }}
+        />
         <div className="goal-track__goal" style={{ left: pct(goalArr) }} />
       </div>
 
       <div className="goal-track__legend" aria-hidden="true">
         <span className="goal-track__label" style={{ left: 0 }}>
           Booked
-          <strong>{formatMoney(booked)}</strong>
+          <strong>
+            <CountUp value={booked} play={play} delay={0.5} format={formatMoney} />
+          </strong>
         </span>
         <span
           className="goal-track__label goal-track__label--forecast"
           style={{ left: pct(forecast) }}
         >
           Forecast
-          <strong>{formatMoney(forecast)}</strong>
+          <strong>
+            <CountUp value={forecast} play={play} delay={0.7} format={formatMoney} />
+          </strong>
         </span>
       </div>
 
@@ -136,6 +171,27 @@ function MorningBriefPage() {
   // Les décisions du VP vivent ici, dans la page, parce que plusieurs
   // sections en ont besoin (la pile, l'équipe, le panneau des agents)
   const [decisions, setDecisions] = useState<Decision[]>([]);
+
+  // L'ouverture complète : une fois par jour, sauf « réduire les animations »
+  const [today] = useState(todayKey);
+  const [play] = useState(() => shouldPlayIntro(today));
+  const [booting, setBooting] = useState(play);
+
+  // useCallback : la même fonction d'un rendu à l'autre (BootSequence l'attend)
+  const endBoot = useCallback(() => {
+    markIntroPlayed(today);
+    setBooting(false);
+  }, [today]);
+
+  // Échap passe l'ouverture
+  useEffect(() => {
+    if (!booting) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") endBoot();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [booting, endBoot]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -173,7 +229,11 @@ function MorningBriefPage() {
   const team = brief ? liveTeamLoad(brief.teamLoad, desk, decisions) : [];
   const growthSent = decisions.some((d) => d.id === "grow" && d.action === "send");
 
+  const ready = brief !== null && !booting;
+
   return (
+    // reducedMotion="user" : Motion coupe les déplacements si l'utilisateur le demande
+    <MotionConfig reducedMotion="user">
     <div className="brief">
       <div className="brief__inner">
         <header className="brief__topbar">
@@ -186,47 +246,71 @@ function MorningBriefPage() {
 
         {error && <p className="brief__status">{error}</p>}
 
-        {!error && !brief && (
-          <p className="brief__status">Your agents are preparing the brief…</p>
+        {/* Avant les données (ou pendant l'ouverture) : le squelette */}
+        {!error && !ready && <BriefSkeleton />}
+
+        {!error && booting && (
+          <BootSequence
+            lines={brief ? buildBootLines(brief, desk.length) : null}
+            onDone={endBoot}
+          />
         )}
 
-        {brief && (
+        {ready && (
           <div className="brief__cols">
             <main className="brief__main">
               <section className="brief__opening">
                 <h1 className="brief__headline">
-                  {buildHeadline(brief).map((line) => (
-                    <span key={line}>{line}</span>
+                  {buildHeadline(brief).map((line, index) => (
+                    <motion.span
+                      key={line}
+                      initial={{ opacity: 0, y: play ? 24 : 0 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: play ? index * 0.15 : 0, ease: EASE }}
+                    >
+                      {line}
+                    </motion.span>
                   ))}
                 </h1>
 
-                <p className="brief__lede">{buildLede(brief, desk.length)}</p>
+                <Reveal play={play} delay={0.3}>
+                  <p className="brief__lede">{buildLede(brief, desk.length)}</p>
+                </Reveal>
 
-                <GoalTrack goal={brief.goal} />
+                <Reveal play={play} delay={0.45}>
+                  <GoalTrack goal={brief.goal} play={play} />
+                </Reveal>
               </section>
 
-              <DecisionDesk
-                month={brief.month}
-                items={desk}
-                teamLoad={brief.teamLoad}
-                asOf={brief.asOf}
-                decisions={decisions}
-                setDecisions={setDecisions}
-                trust={<TrustLine month={brief.month} />}
-              />
+              <Reveal play={play} delay={0.9}>
+                <DecisionDesk
+                  month={brief.month}
+                  items={desk}
+                  teamLoad={brief.teamLoad}
+                  asOf={brief.asOf}
+                  decisions={decisions}
+                  setDecisions={setDecisions}
+                  trust={<TrustLine month={brief.month} />}
+                />
+              </Reveal>
 
-              <CalmSections brief={brief} team={team} growthSent={growthSent} />
+              <Reveal play={play} delay={1.1}>
+                <CalmSections brief={brief} team={team} growthSent={growthSent} />
+              </Reveal>
             </main>
 
-            <NightPanel
-              brief={brief}
-              deskCount={desk.length}
-              decided={decisions.length}
-            />
+            <Reveal play={play} delay={0.6} className="brief__aside">
+              <NightPanel
+                brief={brief}
+                deskCount={desk.length}
+                decided={decisions.length}
+              />
+            </Reveal>
           </div>
         )}
       </div>
     </div>
+    </MotionConfig>
   );
 }
 

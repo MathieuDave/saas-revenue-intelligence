@@ -220,41 +220,12 @@
   min-width: 0;
 }
 
-
-/* ---------- Le sélecteur de matin : Today / Replay ---------- */
-
-.brief__modes {
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
+/* L'enveloppe animée du panneau des agents garde sa place de colonne */
+.brief__aside {
+  flex: 1 1 300px;
+  max-width: 380px;
 }
 
-.brief__mode {
-  min-height: 36px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-soft);
-  font: inherit;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.brief__mode:hover {
-  color: var(--ink);
-}
-
-.brief__mode:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-.brief__mode--on,
-.brief__mode--on:hover {
-  background: var(--ink);
-  color: #fff;
+.brief__aside .night {
+  max-width: none;
 }

@@ -1,0 +1,132 @@
+/* =========================================================
+   L'OUVERTURE : squelette + ligne de statut
+   ========================================================= */
+
+.skeleton {
+  max-width: 880px;
+  padding-top: clamp(48px, 10vh, 120px);
+}
+
+.skeleton__line,
+.skeleton__rail,
+.skeleton__card {
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(19, 32, 59, 0.06) 0%,
+    rgba(19, 32, 59, 0.11) 50%,
+    rgba(19, 32, 59, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shine 1.4s ease-in-out infinite;
+}
+
+.skeleton__line--xl {
+  height: 64px;
+  width: 70%;
+  margin-bottom: 14px;
+}
+
+.skeleton__line--md {
+  height: 20px;
+  width: 62%;
+  margin-top: 18px;
+}
+
+.skeleton__line--short {
+  width: 48%;
+}
+
+.skeleton__rail {
+  height: 6px;
+  margin-top: 72px;
+}
+
+.skeleton__card {
+  height: 320px;
+  margin-top: 120px;
+  border-radius: 18px;
+}
+
+@keyframes skeleton-shine {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/* La ligne de statut, en bas de l'écran */
+.boot {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px 10px 18px;
+  border-radius: 999px;
+  background: var(--night);
+  color: #dfe6f5;
+  font-size: 14px;
+  transform: translateX(-50%);
+  box-shadow: 0 18px 40px -18px rgba(15, 26, 51, 0.6);
+}
+
+.boot__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+}
+
+.boot__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: boot-pulse 1s ease-in-out infinite;
+}
+
+@keyframes boot-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.boot__skip {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #2a3a63;
+  border-radius: 999px;
+  background: transparent;
+  color: #a9b7d6;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.boot__skip:hover {
+  color: #fff;
+  border-color: #5d74a8;
+}
+
+.boot__skip:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__line,
+  .skeleton__rail,
+  .skeleton__card,
+  .boot__dot {
+    animation: none;
+  }
+}
