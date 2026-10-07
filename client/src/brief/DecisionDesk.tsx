@@ -29,7 +29,7 @@ import "./DecisionDesk.css";
 // =========================================================
 // LA PILE DE DÉCISIONS DU VP
 // Une carte à la fois. Les décisions sont enregistrées
-// dans Databricks (table vp_decisions), sauf en mode Replay.
+// dans Databricks (table vp_decisions).
 // =========================================================
 
 type OnDecide = (action: Action, person: string | null, due: string | null) => void;
@@ -69,22 +69,22 @@ function summarize(decision: Decision, item: DeskItem): string {
 
 export default function DecisionDesk({
   month,
-  replay,
   items,
   teamLoad,
   asOf,
   decisions,
   setDecisions,
+  trust,
 }: {
   month: string;
-  // Mode Replay : rien n'est enregistré, et pas d'enquête (l'agent connaîtrait le futur)
-  replay: boolean;
   items: DeskItem[];
   teamLoad: TeamMemberLoad[];
   asOf: string;
   // L'état vit dans la page : d'autres sections ont besoin des décisions
   decisions: Decision[];
   setDecisions: Dispatch<SetStateAction<Decision[]>>;
+  // Une ligne de confiance affichée sous le titre (facultative)
+  trust?: ReactNode;
 }) {
   // Tout le reste se calcule à partir de la liste des décisions
   const decidedIds = new Set(decisions.map((d) => d.id));
@@ -108,16 +108,6 @@ export default function DecisionDesk({
     const decision: Decision = { decisionId: null, id: current.id, action, person, due };
 
     setSyncError(null);
-
-    // En Replay, la décision reste dans le navigateur (simulation)
-    if (replay) {
-      setDecisions((previous) => [
-        ...previous,
-        { ...decision, decisionId: `replay-${previous.length}` },
-      ]);
-      return;
-    }
-
     setDecisions((previous) => [...previous, decision]);
 
     saveDecision(month, current, decision)
@@ -141,8 +131,6 @@ export default function DecisionDesk({
 
     setSyncError(null);
     setDecisions((previous) => previous.slice(0, -1));
-
-    if (replay) return; // rien à effacer côté serveur
 
     deleteDecision(decisionId).catch(() => {
       // Échec : on remet la décision et on le dit
@@ -172,9 +160,11 @@ export default function DecisionDesk({
         <span className="desk__progress">
           {current
             ? `Decision ${total - pending.length + 1} of ${total}`
-            : `All ${total} decided`}
+                       : `All ${total} decided`}
         </span>
       </div>
+
+      {trust}
 
       <div className="gauge">
         <p className="gauge__text">
@@ -204,7 +194,6 @@ export default function DecisionDesk({
             item={current}
             team={team}
             asOf={asOf}
-            canInvestigate={!replay}
             onDecide={decide}
           />
         </div>
@@ -250,13 +239,11 @@ function DeskCard({
   item,
   team,
   asOf,
-  canInvestigate,
   onDecide,
 }: {
   item: DeskItem;
   team: TeamMemberLoad[];
   asOf: string;
-  canInvestigate: boolean;
   onDecide: OnDecide;
 }) {
   switch (item.kind) {
@@ -266,7 +253,6 @@ function DeskCard({
           item={item}
           team={team}
           asOf={asOf}
-          canInvestigate={canInvestigate}
           onDecide={onDecide}
         />
       );
@@ -360,13 +346,11 @@ function RiskCard({
   item,
   team,
   asOf,
-  canInvestigate,
   onDecide,
 }: {
   item: Extract<DeskItem, { kind: "risk" }>;
   team: TeamMemberLoad[];
   asOf: string;
-  canInvestigate: boolean;
   onDecide: OnDecide;
 }) {
   const s = item.situation;
@@ -466,16 +450,14 @@ function RiskCard({
       )}
 
       <div className="dcard__actions">
-        {canInvestigate && (
-          <button
-            type="button"
-            className="dbtn"
-            aria-expanded={investigating}
-            onClick={() => setInvestigating(!investigating)}
-          >
-            {investigating ? "Close investigation" : "Investigate"}
-          </button>
-        )}
+        <button
+          type="button"
+          className="dbtn"
+          aria-expanded={investigating}
+          onClick={() => setInvestigating(!investigating)}
+        >
+          {investigating ? "Close investigation" : "Investigate"}
+        </button>
         <button
           type="button"
           className="dbtn dbtn--primary"

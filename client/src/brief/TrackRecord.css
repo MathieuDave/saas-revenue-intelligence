@@ -1,0 +1,123 @@
+/* =========================================================
+   « CAN YOU TRUST YOUR AGENTS? »
+   ========================================================= */
+
+.trust {
+  max-width: 880px;
+  margin-top: 96px;
+}
+
+/* L'affirmation : la voix des agents, en grand */
+.trust__claim {
+  max-width: 24em;
+  margin: 16px 0 0;
+  font-family: var(--font-voice);
+  font-size: clamp(24px, 2.4vw, 30px);
+  line-height: 1.35;
+}
+
+.trust__basis {
+  margin: 10px 0 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.trust__subtitle {
+  margin: 56px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.trust__honest {
+  max-width: 40em;
+  margin: 8px 0 20px;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.trust__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr);
+  gap: 12px 32px;
+  align-items: baseline;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+
+.trust__row:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.trust__name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.trust__meta {
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-size: 14px;
+}
+
+.trust__tag {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Perdu : l'accent ambré. Les autres restent calmes. */
+.trust__tag--lost {
+  background: #fbe9d2;
+  color: #8a5208;
+}
+
+.trust__tag--shrank,
+.trust__tag--held {
+  background: #e4eaf5;
+  color: var(--ink);
+}
+
+.trust__tag--grew {
+  background: var(--ink);
+  color: #fff;
+}
+
+.trust__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.trust__notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 28px;
+}
+
+.trust__note {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.trust__note strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .trust__row,
+  .trust__notes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

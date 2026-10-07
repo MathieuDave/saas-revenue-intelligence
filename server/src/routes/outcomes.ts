@@ -145,6 +145,68 @@ export async function getOutcomes(databricks: DatabricksClient, month: string) {
     lesson,
   };
 }
+// =========================================================
+// LE BILAN DES AGENTS SUR TOUT L'HISTORIQUE
+// Parmi les clients perdus jusqu'à ce mois, combien avaient été
+// signalés par un risque avancé dans les 3 mois avant leur départ ?
+// =========================================================
+
+export async function getTrackRecord(databricks: DatabricksClient, month: string) {
+  const [row] = await query(
+    databricks,
+    `
+    WITH churns AS (
+      SELECT customer_id, month AS churn_month, mrr_at_stake * 12 AS arr_lost
+      FROM ${SCHEMA}.gold_customer_signal_events
+      WHERE signal_type = 'Churn'
+        AND DATE_FORMAT(month, 'yyyy-MM') <= :month
+    ),
+    warnings AS (
+      SELECT customer_id, month
+      FROM ${SCHEMA}.gold_customer_signal_events
+      WHERE signal_direction = 'Risk' AND signal_timing = 'Leading'
+    ),
+    churn_with_warning AS (
+      SELECT
+        c.customer_id,
+        c.churn_month,
+        c.arr_lost,
+        MIN(w.month) AS first_warning
+      FROM churns c
+      LEFT JOIN warnings w
+        ON  w.customer_id = c.customer_id
+        AND w.month <  c.churn_month
+        AND w.month >= ADD_MONTHS(c.churn_month, -3)
+      GROUP BY c.customer_id, c.churn_month, c.arr_lost
+    )
+    SELECT
+      COUNT(*)                                            AS churned,
+      COUNT_IF(first_warning IS NOT NULL)                 AS warned,
+      SUM(arr_lost)                                       AS arr_lost,
+      SUM(CASE WHEN first_warning IS NOT NULL THEN arr_lost ELSE 0 END) AS arr_lost_warned,
+      AVG(CASE WHEN first_warning IS NOT NULL
+               THEN MONTHS_BETWEEN(churn_month, first_warning) END) AS avg_months_ahead,
+      DATE_FORMAT(MIN(churn_month), 'yyyy-MM')            AS since
+    FROM churn_with_warning
+    `,
+    { month }
+  );
+
+  const churned = Number(row?.churned ?? 0);
+  const warned = Number(row?.warned ?? 0);
+  const arrLost = Number(row?.arr_lost ?? 0);
+  const arrLostWarned = Number(row?.arr_lost_warned ?? 0);
+
+  return {
+    month,
+    since: row?.since == null ? null : String(row.since),
+    churned,
+    warned,
+    warnedPct: churned > 0 ? Math.round((100 * warned) / churned) : 0,
+    arrLostPct: arrLost > 0 ? Math.round((100 * arrLostWarned) / arrLost) : 0,
+    avgMonthsAhead: Math.round(Number(row?.avg_months_ahead ?? 0) * 10) / 10,
+  };
+}
 
 // =========================================================
 // ROUTE : GET /api/outcomes?month=2025-10
@@ -166,6 +228,22 @@ export function createOutcomesRouter(databricks: DatabricksClient) {
     } catch (error) {
       console.error("Outcomes API error:", error);
       res.status(500).json({ error: "Unable to compute what happened next." });
+    }
+  });
+  // GET /api/track-record?month=2026-08 → le bilan des agents jusqu'à ce mois
+  router.get("/track-record", async (req, res) => {
+    const month = String(req.query.month ?? "");
+
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+      res.status(400).json({ error: "'month' must look like 2026-08." });
+      return;
+    }
+
+    try {
+      res.json(await getTrackRecord(databricks, month));
+    } catch (error) {
+      console.error("Track record API error:", error);
+      res.status(500).json({ error: "Unable to compute the track record." });
     }
   });
 

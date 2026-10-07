@@ -535,3 +535,14 @@
   color: #8a5208;
   font-size: 14px;
 }
+
+
+/* ---------- La ligne de confiance ---------- */
+
+.desk__trust {
+  margin: -12px 0 24px;
+  color: var(--ink-soft);
+  font-family: var(--font-voice);
+  font-size: 17px;
+  line-height: 1.5;
+}

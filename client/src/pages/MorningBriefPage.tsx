@@ -5,7 +5,6 @@ import type { BriefResponse, QuarterGoal } from "../brief/types";
 import {
   countWord,
   formatDay,
-  formatLongDay,
   formatMoney,
   shortQuarter,
 } from "../brief/briefText";
@@ -13,7 +12,7 @@ import DecisionDesk from "../brief/DecisionDesk";
 import CalmSections from "../brief/CalmSections";
 import NightPanel from "../brief/NightPanel";
 import { fetchDecisions } from "../brief/decisionsApi";
-import ReplayOutcomes from "../brief/ReplayOutcomes";
+import TrustLine from "../brief/TrustLine";
 import {
   buildDesk,
   liveTeamLoad,
@@ -23,36 +22,13 @@ import "./MorningBriefPage.css";
 
 const API_URL = "http://localhost:3000/api";
 
-// Les deux matins de la démo
-type Mode = "today" | "replay";
-
-const MONTHS: Record<Mode, string> = {
-  today: "2026-08", // le brief du 31 août 2026
-  replay: "2025-10", // un vrai matin passé, rejoué : 31 octobre 2025
-};
+// Le « matin » de la démo : le brief du 31 août 2026
+const BRIEF_MONTH = "2026-08";
 
 // =========================================================
 // LE TEXTE DU BRIEF (écrit à partir des données)
 // Plus tard, l'agent Briefing Writer pourra le rédiger.
 // =========================================================
-
-function buildReplayHeadline(brief: BriefResponse, deskCount: number): [string, string] {
-  const waiting =
-    deskCount === 1
-      ? "One decision is waiting."
-      : `${countWord(deskCount)} decisions are waiting.`;
-  return [`${formatLongDay(brief.asOf)}.`, waiting];
-}
-
-function buildReplayLede(brief: BriefResponse): string {
-  const flagged =
-    brief.today.length + brief.team.filter((s) => s.leadingRisks > 0).length;
-  return (
-    `This is a replay of a real morning. Your agents flagged ${flagged} accounts ` +
-    `that month and kept ${brief.today.length} for you. Decide as you would have ` +
-    `that day, then see what actually happened over the next three months.`
-  );
-}
 
 function buildHeadline(brief: BriefResponse): [string, string] {
   const { goal, nextQuarterRenewals: next } = brief;
@@ -154,31 +130,18 @@ function GoalTrack({ goal }: { goal: QuarterGoal }) {
 // =========================================================
 
 function MorningBriefPage() {
-  const [mode, setMode] = useState<Mode>("today");
   const [brief, setBrief] = useState<BriefResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const month = MONTHS[mode];
-  const replay = mode === "replay";
 
   // Les décisions du VP vivent ici, dans la page, parce que plusieurs
   // sections en ont besoin (la pile, l'équipe, le panneau des agents)
   const [decisions, setDecisions] = useState<Decision[]>([]);
 
-  // Changer de matin : on repart d'une page vide
-  function switchMode(next: Mode) {
-    if (next === mode) return;
-    setBrief(null);
-    setError(null);
-    setDecisions([]);
-    setMode(next);
-  }
-
   useEffect(() => {
     const controller = new AbortController();
 
-    // Le brief et les décisions déjà prises arrivent en même temps.
-    // En Replay, rien n'est enregistré : on repart toujours de zéro.
-    const loadBrief = fetch(`${API_URL}/brief?month=${month}`, {
+    // Le brief et les décisions déjà prises arrivent en même temps
+    const loadBrief = fetch(`${API_URL}/brief?month=${BRIEF_MONTH}`, {
       signal: controller.signal,
     }).then((response) => {
       if (!response.ok) {
@@ -187,11 +150,7 @@ function MorningBriefPage() {
       return response.json() as Promise<BriefResponse>;
     });
 
-    const loadDecisions = replay
-      ? Promise.resolve([])
-      : fetchDecisions(month, controller.signal);
-
-    Promise.all([loadBrief, loadDecisions])
+    Promise.all([loadBrief, fetchDecisions(BRIEF_MONTH, controller.signal)])
       .then(([loadedBrief, savedDecisions]) => {
         setBrief(loadedBrief);
         setDecisions(savedDecisions);
@@ -205,9 +164,9 @@ function MorningBriefPage() {
         console.error(err);
       });
 
-    // Nettoyage : si on quitte la page ou change de matin, on annule la requête
+    // Nettoyage : si on quitte la page, on annule la requête
     return () => controller.abort();
-  }, [month, replay]);
+  }, []);
 
   // Ce qui arrive sur le bureau du VP (risques, arbitrage, T4, croissance)
   const desk = brief ? buildDesk(brief) : [];
@@ -219,24 +178,6 @@ function MorningBriefPage() {
       <div className="brief__inner">
         <header className="brief__topbar">
           <span className="brief__brand">RevenueAI</span>
-          <div className="brief__modes" role="group" aria-label="Which morning">
-            <button
-              type="button"
-              aria-pressed={!replay}
-              className={replay ? "brief__mode" : "brief__mode brief__mode--on"}
-              onClick={() => switchMode("today")}
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              aria-pressed={replay}
-              className={replay ? "brief__mode brief__mode--on" : "brief__mode"}
-              onClick={() => switchMode("replay")}
-            >
-              Replay, Oct 2025
-            </button>
-          </div>
           {brief && <span className="brief__date">{formatDay(brief.asOf)}</span>}
           <Link to="/" className="brief__explore">
             Explore the data
@@ -254,38 +195,25 @@ function MorningBriefPage() {
             <main className="brief__main">
               <section className="brief__opening">
                 <h1 className="brief__headline">
-                  {(replay
-                    ? buildReplayHeadline(brief, desk.length)
-                    : buildHeadline(brief)
-                  ).map((line) => (
+                  {buildHeadline(brief).map((line) => (
                     <span key={line}>{line}</span>
                   ))}
                 </h1>
 
-                <p className="brief__lede">
-                  {replay ? buildReplayLede(brief) : buildLede(brief, desk.length)}
-                </p>
+                <p className="brief__lede">{buildLede(brief, desk.length)}</p>
 
                 <GoalTrack goal={brief.goal} />
               </section>
 
               <DecisionDesk
                 month={brief.month}
-                replay={replay}
                 items={desk}
                 teamLoad={brief.teamLoad}
                 asOf={brief.asOf}
                 decisions={decisions}
                 setDecisions={setDecisions}
+                trust={<TrustLine month={brief.month} />}
               />
-
-              {replay && (
-                <ReplayOutcomes
-                  month={brief.month}
-                  decisions={decisions}
-                  onRestart={() => setDecisions([])}
-                />
-              )}
 
               <CalmSections brief={brief} team={team} growthSent={growthSent} />
             </main>
