@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
 
 import EvidenceDrawer from "./EvidenceDrawer";
+import type { FollowUpSummary } from "./AgentsStrip";
 import "./FollowUps.css";
 
 // =========================================================
@@ -87,7 +88,14 @@ function change(before: number | null, after: number | null, unit = ""): string 
   return `${before}${unit} → ${after}${unit}`;
 }
 
-export default function FollowUps({ month }: { month: string }) {
+export default function FollowUps({
+  month,
+  onSummary,
+}: {
+  month: string;
+  // Remonte un résumé à la page (pour la bande des agents)
+  onSummary?: (summary: FollowUpSummary) => void;
+}) {
   const [data, setData] = useState<FollowUpsResponse | null>(null);
   const [error, setError] = useState(false);
   const [open, setOpen] = useState<FollowUp | null>(null);
@@ -103,7 +111,15 @@ export default function FollowUps({ month }: { month: string }) {
         if (!response.ok) throw new Error(`API error ${response.status}`);
         return response.json() as Promise<FollowUpsResponse>;
       })
-      .then(setData)
+      .then((loaded) => {
+        setData(loaded);
+        onSummary?.({
+          sinceAsOf: loaded.sinceAsOf,
+          total: loaded.items.length,
+          worse: loaded.tally.worse + loaded.tally.shrank + loaded.tally.lost,
+          better: loaded.tally.better,
+        });
+      })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         console.error(err);
@@ -111,6 +127,8 @@ export default function FollowUps({ month }: { month: string }) {
       });
 
     return () => controller.abort();
+    // onSummary vient de la page : on ne recharge que si le mois change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month]);
 
   if (error) {
@@ -233,4 +251,4 @@ export default function FollowUps({ month }: { month: string }) {
       </AnimatePresence>
     </section>
   );
-}
+}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
 
 import type { BriefResponse, QuarterGoal } from "../brief/types";
@@ -11,7 +11,7 @@ import {
 } from "../brief/briefText";
 import DecisionDesk from "../brief/DecisionDesk";
 import CalmSections from "../brief/CalmSections";
-import NightPanel from "../brief/NightPanel";
+import AgentsStrip, { type FollowUpSummary } from "../brief/AgentsStrip";
 import { fetchDecisions } from "../brief/decisionsApi";
 import TrustLine from "../brief/TrustLine";
 import FollowUps from "../brief/FollowUps";
@@ -50,6 +50,24 @@ function morningLabel(month: string): string {
   });
 }
 
+// Tous les matins disponibles, du plus récent au plus ancien
+function allMornings(): string[] {
+  const months: string[] = [];
+  for (let m = LATEST_MONTH; m >= EARLIEST_MONTH; m = shiftMonth(m, -1)) months.push(m);
+  return months;
+}
+
+// "2026-07" → "July 31, 2026"
+function morningLongLabel(month: string): string {
+  const [year, m] = month.split("-").map(Number);
+  return new Date(Date.UTC(year ?? 2026, m ?? 1, 0)).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 // Le mois demandé dans l'adresse, s'il est valide ; sinon le dernier matin
 function readMonth(value: string | null): string {
   if (!value || !/^\d{4}-\d{2}$/.test(value)) return LATEST_MONTH;
@@ -78,24 +96,27 @@ function buildHeadline(brief: BriefResponse): [string, string] {
   return [`${thisQ} is ${formatMoney(gap)} short.`, protect];
 }
 
+// La phrase sous le titre : courte. Les chiffres détaillés sont dans les tuiles.
 function buildLede(brief: BriefResponse, deskCount: number): string {
   const { goal } = brief;
   const decisions =
     deskCount === 0
       ? "Nothing needs your decision today."
       : deskCount === 1
-        ? "One decision is waiting for you this morning."
-        : `${countWord(deskCount)} decisions are waiting for you this morning.`;
+        ? "One decision is waiting for you."
+        : `${countWord(deskCount)} decisions are waiting for you.`;
 
   if (!goal.available) {
     return `There is not enough history yet to set a quarterly goal. ${decisions}`;
   }
 
-  return (
-    `You have booked ${goal.pctBooked}% of the ${formatMoney(goal.goalArr ?? 0)} goal ` +
-    `with ${goal.daysLeft} days left. At a typical pace, the quarter closes ` +
-    `at ${goal.pctForecast}%. ${decisions}`
-  );
+  const booked = `You have booked ${goal.pctBooked}% of the goal, with ${goal.daysLeft} days left.`;
+  // Sous l'objectif : on ajoute où la tendance mène le trimestre
+  const pace =
+    (goal.pctForecast ?? 0) < 100
+      ? ` At a typical pace, the quarter closes at ${goal.pctForecast}%.`
+      : "";
+  return `${booked}${pace} ${decisions}`;
 }
 
 // Les étapes de l'ouverture : ce que le système vient vraiment de faire
@@ -113,7 +134,8 @@ function buildBootLines(brief: BriefResponse, deskCount: number): string[] {
 }
 
 // =========================================================
-// LA PISTE DE L'OBJECTIF
+// L'OBJECTIF DU TRIMESTRE : trois tuiles lisibles + le rail
+// La pastille de chaque tuile a la couleur de sa partie du rail.
 // =========================================================
 
 function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
@@ -122,68 +144,73 @@ function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
   const goalArr = goal.goalArr ?? 0;
   const booked = goal.bookedArr ?? 0;
   const forecast = goal.forecastArr ?? 0;
+  const reached = (goal.pctForecast ?? 0) >= 100;
 
   // L'échelle laisse un peu d'air après la valeur la plus haute
   const scale = Math.max(goalArr, forecast) * 1.04;
   const pct = (value: number) => `${(100 * value) / scale}%`;
 
   return (
-    <figure
-      className="goal-track"
-      aria-label={`Booked ${formatMoney(booked)}, forecast ${formatMoney(
-        forecast
-      )}, goal ${formatMoney(goalArr)}`}
-    >
-      <div className="goal-track__above" aria-hidden="true">
-        <span
-          className="goal-track__label goal-track__label--goal"
-          style={{ left: pct(goalArr) }}
-        >
-          Goal
-          <strong>
+    <figure className="goal">
+      <div className="goal__tiles">
+        <div className="goal__tile">
+          <div className="goal__label">
+            <span className="goal__swatch goal__swatch--booked" aria-hidden="true" />
+            Booked so far
+          </div>
+          <div className="goal__num">
+            <CountUp value={booked} play={play} delay={0.5} format={formatMoney} />
+          </div>
+          <div className="goal__note">{goal.pctBooked}% of the goal</div>
+        </div>
+
+        <div className="goal__tile">
+          <div className="goal__label">
+            <span className="goal__swatch goal__swatch--goal" aria-hidden="true" />
+            {shortQuarter(goal.quarter)} goal
+          </div>
+          <div className="goal__num">
             <CountUp value={goalArr} play={play} delay={0.5} format={formatMoney} />
-          </strong>
-        </span>
+          </div>
+          <div className="goal__note">
+            {goal.daysLeft} {goal.daysLeft === 1 ? "day" : "days"} left in the quarter
+          </div>
+        </div>
+
+        <div className="goal__tile">
+          <div className="goal__label">
+            <span className="goal__swatch goal__swatch--forecast" aria-hidden="true" />
+            Forecast at a typical pace
+          </div>
+          <div className="goal__num">
+            <CountUp value={forecast} play={play} delay={0.7} format={formatMoney} />
+          </div>
+          <div className={reached ? "goal__note goal__note--good" : "goal__note goal__note--short"}>
+            {reached
+              ? `${goal.pctForecast}% of the goal`
+              : `${goal.pctForecast}% of the goal, ${formatMoney(goalArr - forecast)} short`}
+          </div>
+        </div>
       </div>
 
       {/* Les barres se remplissent pendant l'ouverture */}
-      <div className="goal-track__rail" aria-hidden="true">
+      <div className="goal__rail" aria-hidden="true">
         <motion.div
-          className="goal-track__forecast"
+          className="goal__forecast"
           initial={{ width: play ? "0%" : pct(forecast) }}
           animate={{ width: pct(forecast) }}
           transition={{ duration: 1, delay: play ? 0.7 : 0, ease: EASE }}
         />
         <motion.div
-          className="goal-track__booked"
+          className="goal__booked"
           initial={{ width: play ? "0%" : pct(booked) }}
           animate={{ width: pct(booked) }}
           transition={{ duration: 0.9, delay: play ? 0.5 : 0, ease: EASE }}
         />
-        <div className="goal-track__goal" style={{ left: pct(goalArr) }} />
+        <div className="goal__mark" style={{ left: pct(goalArr) }} />
       </div>
 
-      <div className="goal-track__legend" aria-hidden="true">
-        <span className="goal-track__label" style={{ left: 0 }}>
-          Booked
-          <strong>
-            <CountUp value={booked} play={play} delay={0.5} format={formatMoney} />
-          </strong>
-        </span>
-        <span
-          className="goal-track__label goal-track__label--forecast"
-          style={{ left: pct(forecast) }}
-        >
-          Forecast
-          <strong>
-            <CountUp value={forecast} play={play} delay={0.7} format={formatMoney} />
-          </strong>
-        </span>
-      </div>
-
-      <figcaption className="goal-track__method">
-        How the goal is set: {goal.method}.
-      </figcaption>
+      <figcaption className="goal__method">How the goal is set: {goal.method}.</figcaption>
     </figure>
   );
 }
@@ -195,8 +222,12 @@ function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
 function MorningBriefPage() {
   // Le matin affiché vient de l'adresse (?month=2026-07)
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const month = readMonth(searchParams.get("month"));
   const isLatest = month === LATEST_MONTH;
+
+  // Ce que la section de suivi a trouvé, pour la bande des agents
+  const [followUps, setFollowUps] = useState<FollowUpSummary | null>(null);
 
   const [brief, setBrief] = useState<BriefResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -233,6 +264,7 @@ function MorningBriefPage() {
     setBrief(null);
     setError(null);
     setDecisions([]);
+    setFollowUps(null);
 
     // Le brief et les décisions déjà prises arrivent en même temps
     const loadBrief = fetch(`${API_URL}/brief?month=${month}`, {
@@ -278,19 +310,25 @@ function MorningBriefPage() {
           <span className="brief__brand">RevenueAI</span>
           {brief && <span className="brief__date">{formatDay(brief.asOf)}</span>}
 
-          {/* Naviguer d'un matin à l'autre */}
-          <nav className="brief__mornings" aria-label="Other mornings">
-            {month > EARLIEST_MONTH && (
-              <Link to={`/brief?month=${shiftMonth(month, -1)}`} className="brief__morning">
-                ← {morningLabel(shiftMonth(month, -1))}
-              </Link>
-            )}
-            {!isLatest && (
-              <Link to={`/brief?month=${shiftMonth(month, 1)}`} className="brief__morning">
-                {morningLabel(shiftMonth(month, 1))} →
-              </Link>
-            )}
-          </nav>
+          {/* Choisir le matin : une vraie liste, discrète */}
+          <label className="brief__picker">
+            <span className="brief__picker-label">Morning</span>
+            <select
+              className="brief__select"
+              value={month}
+              onChange={(event) => {
+                const chosen = event.target.value;
+                navigate(chosen === LATEST_MONTH ? "/brief" : `/brief?month=${chosen}`);
+              }}
+            >
+              {allMornings().map((m) => (
+                <option key={m} value={m}>
+                  {morningLongLabel(m)}
+                  {m === LATEST_MONTH ? " (latest)" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <Link to="/" className="brief__explore">
             Explore the data
@@ -320,8 +358,7 @@ function MorningBriefPage() {
 
         {ready && (
           // key : changer de matin recrée toute la page (pile, cartes, sections)
-          <div className="brief__cols" key={brief.month}>
-            <main className="brief__main">
+          <main className="brief__main" key={brief.month}>
               <section className="brief__opening">
                 <h1 className="brief__headline">
                   {buildHeadline(brief).map((line, index) => (
@@ -343,6 +380,11 @@ function MorningBriefPage() {
                 <Reveal play={play} delay={0.45}>
                   <GoalTrack goal={brief.goal} play={play} />
                 </Reveal>
+
+                {/* Ce que les agents ont fait cette nuit : se ferme une fois lu */}
+                <Reveal play={play} delay={0.6}>
+                  <AgentsStrip brief={brief} deskCount={desk.length} followUps={followUps} />
+                </Reveal>
               </section>
 
               <Reveal play={play} delay={0.9}>
@@ -359,22 +401,13 @@ function MorningBriefPage() {
 
               {/* Le suivi des décisions du brief précédent (rien s'il n'y en a pas) */}
               <Reveal play={play} delay={1.0}>
-                <FollowUps month={brief.month} />
+                <FollowUps month={brief.month} onSummary={setFollowUps} />
               </Reveal>
 
               <Reveal play={play} delay={1.1}>
                 <CalmSections brief={brief} team={team} growthSent={growthSent} />
               </Reveal>
-            </main>
-
-            <Reveal play={play} delay={0.6} className="brief__aside">
-              <NightPanel
-                brief={brief}
-                deskCount={desk.length}
-                decided={decisions.length}
-              />
-            </Reveal>
-          </div>
+          </main>
         )}
       </div>
     </div>
@@ -382,4 +415,4 @@ function MorningBriefPage() {
   );
 }
 
-export default MorningBriefPage;
+export default MorningBriefPage;

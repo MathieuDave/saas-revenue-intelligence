@@ -30,8 +30,9 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Une colonne de 880 px de texte, barre du haut alignée dessus */
 .brief__inner {
-  max-width: 1320px;
+  max-width: calc(880px + 2 * clamp(20px, 5vw, 64px));
   margin: 0 auto;
   padding: 0 clamp(20px, 5vw, 64px) 96px;
 }
@@ -77,28 +78,39 @@
   border-radius: 2px;
 }
 
-/* ---------- D'un matin à l'autre ---------- */
+/* ---------- Choisir le matin ---------- */
 
-.brief__mornings {
-  display: flex;
-  gap: 16px;
-}
-
-.brief__morning {
+.brief__picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--ink-soft);
-  font-size: 15px;
-  text-decoration: none;
+  font-size: 14px;
 }
 
-.brief__morning:hover {
+.brief__select {
+  min-height: 36px;
+  padding: 0 32px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234f5b74' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 12px center;
   color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  appearance: none;
 }
 
-.brief__morning:focus-visible,
+.brief__select:hover {
+  border-color: var(--ink-soft);
+}
+
+.brief__select:focus-visible,
 .brief__past a:focus-visible {
   outline: 2px solid var(--ink);
-  outline-offset: 4px;
-  border-radius: 2px;
+  outline-offset: 2px;
 }
 
 /* Un matin passé : un bandeau discret, mais impossible à manquer */
@@ -127,16 +139,16 @@
 /* ---------- Ouverture : le titre du brief ---------- */
 
 .brief__opening {
-  padding-top: clamp(48px, 10vh, 120px);
+  padding-top: clamp(16px, 4vh, 40px);
 }
 
+/* Un titre compact : on doit voir la première décision dès l'ouverture */
 .brief__headline {
   margin: 0;
-  max-width: 14ch;
-  font-size: clamp(40px, 6vw, 80px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
 }
 
 .brief__headline span {
@@ -144,95 +156,128 @@
 }
 
 .brief__lede {
-  margin: 32px 0 0;
-  max-width: 34em;
+  margin: 14px 0 0;
+  max-width: 36em;
   color: var(--ink-soft);
   font-family: var(--font-voice);
-  font-size: clamp(19px, 1.7vw, 23px);
-  line-height: 1.5;
+  font-size: clamp(18px, 1.5vw, 20px);
+  line-height: 1.45;
 }
 
-/* ---------- La piste de l'objectif ---------- */
+/* ---------- L'objectif du trimestre : tuiles + rail ---------- */
 
-.goal-track {
-  margin: clamp(48px, 8vh, 88px) 0 0;
-  max-width: 880px;
+.goal {
+  margin: 24px 0 0;
 }
 
-.goal-track__rail {
+.goal__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.goal__tile {
+  padding: 14px 16px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06);
+}
+
+.goal__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* La pastille = la couleur de sa partie du rail */
+.goal__swatch {
+  flex: 0 0 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.goal__swatch--booked {
+  background: var(--ink);
+}
+
+.goal__swatch--goal {
+  box-sizing: border-box;
+  border: 2px solid var(--ink);
+  background: #fff;
+}
+
+.goal__swatch--forecast {
+  background: var(--dawn);
+}
+
+.goal__num {
+  margin-top: 6px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.goal__note {
+  margin-top: 2px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.goal__note--good {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.goal__note--short {
+  color: #8a5208;
+  font-weight: 600;
+}
+
+.goal__rail {
   position: relative;
   height: 6px;
+  margin-top: 14px;
   border-radius: 3px;
   background: var(--line);
 }
 
-.goal-track__forecast,
-.goal-track__booked {
+.goal__forecast,
+.goal__booked {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: 3px;
 }
 
-.goal-track__forecast {
+.goal__forecast {
   background: var(--dawn);
 }
 
-.goal-track__booked {
+.goal__booked {
   background: var(--ink);
 }
 
-.goal-track__goal {
+.goal__mark {
   position: absolute;
-  top: -10px;
-  bottom: -10px;
+  top: -6px;
+  bottom: -6px;
   width: 2px;
   margin-left: -1px;
   background: var(--ink);
 }
 
-.goal-track__above {
-  position: relative;
-  height: 44px;
-  margin-bottom: 14px;
-  font-size: 14px;
-  color: var(--ink-faint);
-}
-
-.goal-track__legend {
-  position: relative;
-  height: 52px;
-  margin-top: 16px;
-  font-size: 14px;
-  color: var(--ink-faint);
-}
-
-.goal-track__label {
-  position: absolute;
-  top: 0;
-  white-space: nowrap;
-}
-
-.goal-track__label strong {
-  display: block;
-  color: var(--ink);
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.goal-track__label--goal {
-  transform: translateX(-50%);
-  text-align: center;
-}
-
-.goal-track__label--forecast {
-  transform: translateX(-100%);
-  text-align: right;
-}
-
-.goal-track__method {
+.goal__method {
   margin: 8px 0 0;
   color: var(--ink-faint);
-  font-size: 13px;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .goal__tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* ---------- États ---------- */
@@ -246,26 +291,8 @@
 }
 
 
-/* ---------- Deux colonnes : le brief + le panneau des agents ---------- */
-
-.brief__cols {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 56px;
-}
+/* ---------- Une seule colonne : le brief se lit de haut en bas ---------- */
 
 .brief__main {
-  flex: 999 1 620px;
   min-width: 0;
-}
-
-/* L'enveloppe animée du panneau des agents garde sa place de colonne */
-.brief__aside {
-  flex: 1 1 300px;
-  max-width: 380px;
-}
-
-.brief__aside .night {
-  max-width: none;
 }
