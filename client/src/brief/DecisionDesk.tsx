@@ -22,6 +22,7 @@ import {
   type Decision,
   type DeskItem,
 } from "./deskItems";
+import { deleteDecision, saveDecision } from "./decisionsApi";
 import "./DecisionDesk.css";
 
 // =========================================================
@@ -66,12 +67,14 @@ function summarize(decision: Decision, item: DeskItem): string {
 }
 
 export default function DecisionDesk({
+  month,
   items,
   teamLoad,
   asOf,
   decisions,
   setDecisions,
 }: {
+  month: string;
   items: DeskItem[];
   teamLoad: TeamMemberLoad[];
   asOf: string;
@@ -93,16 +96,44 @@ export default function DecisionDesk({
   const last = decisions.at(-1);
   const lastItem = last ? items.find((i) => i.id === last.id) : undefined;
 
+   const [syncError, setSyncError] = useState<string | null>(null);
+
+  // Interface « optimiste » : l'écran change tout de suite,
+  // puis on enregistre dans Databricks en arrière-plan.
   const decide: OnDecide = (action, person, due) => {
     if (!current) return;
-    setDecisions((previous) => [
-      ...previous,
-      { id: current.id, action, person, due },
-    ]);
+    const decision: Decision = { decisionId: null, id: current.id, action, person, due };
+
+    setSyncError(null);
+    setDecisions((previous) => [...previous, decision]);
+
+    saveDecision(month, current, decision)
+      .then((decisionId) =>
+        // On retrouve la décision (même objet) et on lui donne son identifiant
+        setDecisions((previous) =>
+          previous.map((d) => (d === decision ? { ...d, decisionId } : d))
+        )
+      )
+      .catch(() => {
+        // Échec : on retire la décision de l'écran et on le dit
+        setDecisions((previous) => previous.filter((d) => d !== decision));
+        setSyncError("That decision could not be saved. Check the backend and try again.");
+      });
   };
 
   function undo() {
+    const lastDecision = decisions.at(-1);
+    if (!lastDecision?.decisionId) return; // pas encore enregistrée
+    const decisionId = lastDecision.decisionId;
+
+    setSyncError(null);
     setDecisions((previous) => previous.slice(0, -1));
+
+    deleteDecision(decisionId).catch(() => {
+      // Échec : on remet la décision et on le dit
+      setDecisions((previous) => [...previous, lastDecision]);
+      setSyncError("Undo could not be saved. Check the backend and try again.");
+    });
   }
 
   // Un matin calme est aussi une bonne nouvelle
@@ -172,12 +203,19 @@ export default function DecisionDesk({
             ? summarize(last, lastItem)
             : "Each decision gets an owner and a deadline, and updates your team."}
         </span>
-        {last && (
+                {last && last.decisionId === null && <span>Saving…</span>}
+        {last && last.decisionId !== null && (
           <button type="button" className="desk__undo" onClick={undo}>
             Undo
           </button>
         )}
       </div>
+
+      {syncError && (
+        <p className="desk__error" role="alert">
+          {syncError}
+        </p>
+      )}
     </section>
   );
 }

@@ -11,6 +11,7 @@ import {
 import DecisionDesk from "../brief/DecisionDesk";
 import CalmSections from "../brief/CalmSections";
 import NightPanel from "../brief/NightPanel";
+import { fetchDecisions } from "../brief/decisionsApi";
 import {
   buildDesk,
   liveTeamLoad,
@@ -138,16 +139,21 @@ function MorningBriefPage() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(`${API_URL}/brief?month=${BRIEF_MONTH}`, {
+        // Le brief et les décisions déjà prises arrivent en même temps
+    const loadBrief = fetch(`${API_URL}/brief?month=${BRIEF_MONTH}`, {
       signal: controller.signal,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`API error ${response.status}`);
-        }
-        return response.json() as Promise<BriefResponse>;
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`API error ${response.status}`);
+      }
+      return response.json() as Promise<BriefResponse>;
+    });
+
+    Promise.all([loadBrief, fetchDecisions(BRIEF_MONTH, controller.signal)])
+      .then(([loadedBrief, savedDecisions]) => {
+        setBrief(loadedBrief);
+        setDecisions(savedDecisions);
       })
-      .then(setBrief)
       .catch((err: unknown) => {
         // Annulation volontaire (on a quitté la page) → pas une erreur
         if (err instanceof DOMException && err.name === "AbortError") return;
@@ -198,7 +204,8 @@ function MorningBriefPage() {
                 <GoalTrack goal={brief.goal} />
               </section>
 
-              <DecisionDesk
+               <DecisionDesk
+                month={brief.month}
                 items={desk}
                 teamLoad={brief.teamLoad}
                 asOf={brief.asOf}

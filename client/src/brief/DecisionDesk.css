@@ -526,3 +526,12 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* ---------- Erreur d'enregistrement ---------- */
+
+.desk__error {
+  margin: 4px 0 0;
+  color: #8a5208;
+  font-size: 14px;
+}

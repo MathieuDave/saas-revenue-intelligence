@@ -17,6 +17,7 @@ import { createLiveRouter } from "./routes/live.js";
 import { initSimulation } from "./simulation.js";
 import { createAgentsRouter } from "./routes/agents.js";
 import { createBriefRouter } from "./routes/brief.js";
+import { createDecisionsRouter } from "./routes/decisions.js";
 
 const app = express();
 const PORT = 3000;
@@ -46,7 +47,7 @@ async function startServer() {
     app.use("/api", createLiveRouter());
     app.use("/api", createAgentsRouter(databricks));
     app.use("/api", createBriefRouter(databricks));
-
+    app.use("/api", createDecisionsRouter(databricks));
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);

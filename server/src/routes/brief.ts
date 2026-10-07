@@ -28,7 +28,7 @@ const RISK_LOOKBACK_MONTHS = 3; // un risque avancé dans les 3 derniers mois
 const KEY_RENEWAL_ARR = 10_000; // au-dessus : le VP voit le compte par son nom
 
 // L'équipe du VP (fictive) — même équipe que dans le prompt de l'agent
-const TEAM = [
+export const TEAM = [
   { name: "Julie Tremblay", role: "CSM · Enterprise" },
   { name: "Marc Gagnon", role: "CSM · Small & Mid-Market" },
   { name: "Sofia Ramirez", role: "Account Executive · Expansion" },
