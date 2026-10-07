@@ -204,6 +204,8 @@ type BriefSituation = {
   lane: BriefLane;
   owner: TeamMemberName | null; // seulement pour les situations « team »
   ownerReason: string | null;
+  suggestedOwner: TeamMemberName | null; // proposé par la règle (sauf « info »)
+  suggestedReason: string | null;
 };
 
 // La règle v2, écrite une seule fois, lisible par un humain
@@ -337,12 +339,15 @@ export async function getBriefSituations(
       daysToRenewal,
     });
 
-    // Seules les situations « team » sont confiées à quelqu'un
-    const assignment =
-      lane === "team"
-        ? chooseOwner({ signalTypes, risks, companySize })
-        : { owner: null, ownerReason: null };
+        // La personne que la règle de routage propose (sauf pour « info »)
+    const suggestion =
+      lane === "info" ? null : chooseOwner({ signalTypes, risks, companySize });
 
+    // Seules les situations « team » sont déjà confiées à quelqu'un
+    const assignment =
+      lane === "team" && suggestion
+        ? suggestion
+        : { owner: null, ownerReason: null };
     return {
       customerId: String(row.customer_id),
       companyName: String(row.company_name ?? row.customer_id),
@@ -358,6 +363,8 @@ export async function getBriefSituations(
       daysToRenewal,
       lane,
       ...assignment,
+      suggestedOwner: suggestion?.owner ?? null,
+      suggestedReason: suggestion?.ownerReason ?? null,
     };
   });
 

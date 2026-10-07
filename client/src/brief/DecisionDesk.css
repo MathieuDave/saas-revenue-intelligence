@@ -319,3 +319,210 @@
     animation: none;
   }
 }
+
+/* ---------- L'échéance ---------- */
+
+.dcard__due {
+  margin-top: 24px;
+}
+
+.dcard__label {
+  margin-bottom: 8px;
+  color: var(--ink-faint);
+  font-size: 14px;
+}
+
+.dcard__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dchip {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dchip:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.dchip--on,
+.dchip--on:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+.dcard__warn {
+  margin: 8px 0 0;
+  color: #8a5208;
+  font-size: 13px;
+}
+
+/* ---------- Le choix de la personne ---------- */
+
+.dcard__picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 22px;
+  animation: dcard-rise 0.3s ease;
+}
+
+.dperson {
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dperson:hover {
+  border-color: var(--ink);
+}
+
+.dperson__name {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dperson__role,
+.dperson__load {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.dperson--heavy .dperson__load {
+  color: #8a5208;
+}
+
+.dperson--suggested {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.dchip:focus-visible,
+.dperson:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .dcard__picker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dcard__picker {
+    animation: none;
+  }
+}
+
+
+/* ---------- La jauge ---------- */
+
+.gauge {
+  margin: -8px 0 28px;
+}
+
+.gauge__text {
+  margin: 0 0 10px;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.gauge__text strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.gauge__rail {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.gauge__fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ink);
+  transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gauge__fill {
+    transition: none;
+  }
+}
+
+
+/* ---------- Cartes spéciales ---------- */
+
+.gauge__text {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.dcard__dot--calm {
+  background: var(--dawn);
+  box-shadow: none;
+}
+
+.dcard__ifnot--calm {
+  border-left-color: var(--dawn);
+}
+
+.dcard__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.doption {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.doption--recommended {
+  border-color: var(--ink);
+}
+
+.doption__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.doption__impact {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .dcard__options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -29,6 +29,8 @@ export type Situation = {
   lane: "today" | "readyToGrow" | "team" | "info";
   owner: string | null;
   ownerReason: string | null;
+  suggestedOwner: string | null;
+  suggestedReason: string | null;
 };
 
 export type RenewalAtRisk = {

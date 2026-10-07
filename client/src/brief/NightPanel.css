@@ -1,0 +1,87 @@
+/* =========================================================
+   LE PANNEAU DES AGENTS — la nuit, le monde des agents
+   ========================================================= */
+
+.night {
+  flex: 1 1 300px;
+  max-width: 380px;
+  margin-top: clamp(48px, 10vh, 120px);
+  padding: 28px 26px;
+  border-radius: 22px;
+  background-color: var(--night);
+  background-image: radial-gradient(
+    120% 60% at 50% 120%,
+    #2b3d6b 0%,
+    rgba(43, 61, 107, 0) 70%
+  );
+  color: #cfd8ea;
+}
+
+.night__title {
+  margin: 0;
+  color: #fff;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.night__sub {
+  margin: 6px 0 0;
+  color: #8fa1c7;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.night__agents {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.night__agent {
+  display: flex;
+  gap: 12px;
+}
+
+.night__dot {
+  flex: 0 0 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: #5d74a8;
+}
+
+.night__name {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.night__did {
+  margin-top: 2px;
+  color: #a9b7d6;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.night__log {
+  margin: 26px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid #26365e;
+  color: #a9b7d6;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.night__log strong {
+  color: #fff;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .night {
+    max-width: none;
+  }
+}

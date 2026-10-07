@@ -31,7 +31,7 @@
 }
 
 .brief__inner {
-  max-width: 1120px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 0 clamp(20px, 5vw, 64px) 96px;
 }
@@ -203,4 +203,19 @@
   font-family: var(--font-voice);
   font-size: 22px;
   text-align: center;
+}
+
+
+/* ---------- Deux colonnes : le brief + le panneau des agents ---------- */
+
+.brief__cols {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 56px;
+}
+
+.brief__main {
+  flex: 999 1 620px;
+  min-width: 0;
 }

@@ -9,6 +9,13 @@ import {
   shortQuarter,
 } from "../brief/briefText";
 import DecisionDesk from "../brief/DecisionDesk";
+import CalmSections from "../brief/CalmSections";
+import NightPanel from "../brief/NightPanel";
+import {
+  buildDesk,
+  liveTeamLoad,
+  type Decision,
+} from "../brief/deskItems";
 import "./MorningBriefPage.css";
 
 const API_URL = "http://localhost:3000/api";
@@ -37,12 +44,14 @@ function buildHeadline(brief: BriefResponse): [string, string] {
   return [`${thisQ} is ${formatMoney(gap)} short.`, protect];
 }
 
-function buildLede(brief: BriefResponse): string {
-  const { goal, counts } = brief;
+function buildLede(brief: BriefResponse, deskCount: number): string {
+  const { goal } = brief;
   const decisions =
-    counts.today === 1
-      ? "One account needs your decision today."
-      : `${countWord(counts.today)} accounts need your decision today.`;
+    deskCount === 0
+      ? "Nothing needs your decision today."
+      : deskCount === 1
+        ? "One decision is waiting for you this morning."
+        : `${countWord(deskCount)} decisions are waiting for you this morning.`;
 
   if (!goal.available) {
     return `There is not enough history yet to set a quarterly goal. ${decisions}`;
@@ -122,6 +131,10 @@ function MorningBriefPage() {
   const [brief, setBrief] = useState<BriefResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Les décisions du VP vivent ici, dans la page, parce que plusieurs
+  // sections en ont besoin (la pile, l'équipe, le panneau des agents)
+  const [decisions, setDecisions] = useState<Decision[]>([]);
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -148,6 +161,11 @@ function MorningBriefPage() {
     return () => controller.abort();
   }, []);
 
+  // Ce qui arrive sur le bureau du VP (risques, arbitrage, T4, croissance)
+  const desk = brief ? buildDesk(brief) : [];
+  const team = brief ? liveTeamLoad(brief.teamLoad, desk, decisions) : [];
+  const growthSent = decisions.some((d) => d.id === "grow" && d.action === "send");
+
   return (
     <div className="brief">
       <div className="brief__inner">
@@ -166,20 +184,38 @@ function MorningBriefPage() {
         )}
 
         {brief && (
-          <section className="brief__opening">
-            <h1 className="brief__headline">
-              {buildHeadline(brief).map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </h1>
+          <div className="brief__cols">
+            <main className="brief__main">
+              <section className="brief__opening">
+                <h1 className="brief__headline">
+                  {buildHeadline(brief).map((line) => (
+                    <span key={line}>{line}</span>
+                  ))}
+                </h1>
 
-            <p className="brief__lede">{buildLede(brief)}</p>
+                <p className="brief__lede">{buildLede(brief, desk.length)}</p>
 
-            <GoalTrack goal={brief.goal} />
-          </section>
+                <GoalTrack goal={brief.goal} />
+              </section>
+
+              <DecisionDesk
+                items={desk}
+                teamLoad={brief.teamLoad}
+                asOf={brief.asOf}
+                decisions={decisions}
+                setDecisions={setDecisions}
+              />
+
+              <CalmSections brief={brief} team={team} growthSent={growthSent} />
+            </main>
+
+            <NightPanel
+              brief={brief}
+              deskCount={desk.length}
+              decided={decisions.length}
+            />
+          </div>
         )}
-
-        {brief && <DecisionDesk situations={brief.today} />}
       </div>
     </div>
   );

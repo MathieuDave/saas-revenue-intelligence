@@ -1,0 +1,144 @@
+/* =========================================================
+   LES SECTIONS CALMES
+   ========================================================= */
+
+.calm {
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+  max-width: 880px;
+  margin-top: 96px;
+}
+
+.calm__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 24px;
+}
+
+.calm__title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.calm__count {
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.calm__sub {
+  max-width: 44em;
+  margin: 8px 0 20px;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.calm__scroll {
+  overflow-x: auto;
+}
+
+.calm__table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.calm__table th {
+  padding: 0 12px 10px 0;
+  color: var(--ink-faint);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.calm__table td {
+  padding: 14px 12px 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.calm__table tr:last-child td {
+  border-bottom: 1px solid var(--line);
+}
+
+.calm__table .calm__num {
+  text-align: right;
+  padding-right: 32px;
+}
+
+.calm__name {
+  font-weight: 500;
+}
+
+.calm__soft {
+  color: var(--ink-faint);
+}
+
+/* ---------- L'équipe ---------- */
+
+.calm__team {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 40px;
+}
+
+.calm__member {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 15px;
+}
+
+.calm__member-name {
+  font-weight: 600;
+}
+
+.calm__member-role {
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.calm__load {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.calm__load--heavy {
+  color: #8a5208;
+}
+
+.calm__bar {
+  height: 6px;
+  margin-top: 10px;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.calm__fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ink);
+  transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calm__fill--heavy {
+  background: var(--amber);
+}
+
+@media (max-width: 640px) {
+  .calm__team {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calm__fill {
+    transition: none;
+  }
+}

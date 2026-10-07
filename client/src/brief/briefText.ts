@@ -118,3 +118,67 @@ export function renewalLabel(s: Situation): string {
     ? `Renews ${date}, in ${s.daysToRenewal} days`
     : `Renews ${date}`;
 }
+
+
+// =========================================================
+// LES ÉCHÉANCES PROPOSÉES
+// Calculées à partir de la date du brief et du renouvellement.
+// =========================================================
+
+export type DueOption = {
+  label: string;
+  date: string; // "2026-09-04"
+  afterRenewal: boolean;
+};
+
+// "2026-08-31" + 4 jours → "2026-09-04"
+export function addDays(isoDate: string, days: number): string {
+  const date = new Date(`${isoDate}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+// "2026-09-04" → "Fri Sep 4"
+export function shortDay(isoDate: string): string {
+  return new Date(`${isoDate}T12:00:00Z`)
+    .toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    })
+    .replace(",", "");
+}
+
+export function dueOptions(s: Situation, asOf: string): DueOption[] {
+  const dayOfWeek = new Date(`${asOf}T12:00:00Z`).getUTCDay(); // 0 = dimanche
+  const daysToFriday = (5 - dayOfWeek + 7) % 7 || 7;
+
+  const in48h = { label: "Within 48 hours", date: addDays(asOf, 2) };
+  const thisWeek = { label: "This week", date: addDays(asOf, daysToFriday) };
+  const twoWeeks = { label: "In two weeks", date: addDays(asOf, 14) };
+
+  let choices = [thisWeek, in48h, twoWeeks];
+
+  if (s.nextRenewal && s.daysToRenewal !== null && s.daysToRenewal <= 14) {
+    // Renouvellement imminent : la proposition est « avant le renouvellement »
+    const before = {
+      label: "Before renewal",
+      date: addDays(s.nextRenewal, -3) > asOf ? addDays(s.nextRenewal, -3) : addDays(asOf, 1),
+    };
+    choices = [before, in48h, twoWeeks];
+  } else if (mainRisk(s) === "Negative Feedback") {
+    // Un client mécontent : répondre vite
+    choices = [in48h, thisWeek, twoWeeks];
+  }
+
+  // Pas deux propositions à la même date
+  const seen = new Set<string>();
+  return choices
+    .filter((c) => (seen.has(c.date) ? false : (seen.add(c.date), true)))
+    .map((c) => ({
+      label: `${c.label}, ${shortDay(c.date)}`,
+      date: c.date,
+      afterRenewal: s.nextRenewal !== null && c.date > s.nextRenewal,
+    }));
+}
