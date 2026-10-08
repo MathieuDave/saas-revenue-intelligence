@@ -90,6 +90,93 @@ function decisionState(decision: Decision | undefined, owner: string | null): st
   return "Decided";
 }
 
+// =========================================================
+// LES APERÇUS : une petite image en bas de chaque tuile,
+// pour comprendre avant même de cliquer. Tout vient des vraies données.
+// =========================================================
+
+const MAX_DOTS = 12;
+
+// Une pastille par décision suivie, de la couleur de son statut
+function FollowDots({ items }: { items: FollowUp[] }) {
+  const shown = items.slice(0, MAX_DOTS);
+  const rest = items.length - shown.length;
+  return (
+    <span className="mprev mprev--dots" aria-hidden="true">
+      {shown.map((f) => (
+        <span key={f.customerId} className={`mprev__dot mprev__dot--${f.status}`} />
+      ))}
+      {rest > 0 && <span className="mprev__more">+{rest}</span>}
+    </span>
+  );
+}
+
+// "2026-10" → "Oct"
+function monthShort(month: string): string {
+  return new Date(`${month}-15T12:00:00Z`).toLocaleDateString("en-US", {
+    month: "short",
+    timeZone: "UTC",
+  });
+}
+
+// L'ARR des grands comptes à renouveler, mois par mois ; le premier mois chargé en ambre
+function RenewalBars({ from, rows }: { from: string; rows: { nextRenewal: string; arr: number }[] }) {
+  const start = from.slice(0, 7);
+  const months = [0, 1, 2].map((delta) => {
+    const [year, m] = start.split("-").map(Number);
+    return new Date(Date.UTC(year ?? 2026, (m ?? 1) - 1 + delta, 1)).toISOString().slice(0, 7);
+  });
+  const totals = months.map((month) =>
+    rows.filter((r) => r.nextRenewal.startsWith(month)).reduce((sum, r) => sum + r.arr, 0)
+  );
+  const max = Math.max(...totals, 1);
+  const first = totals.findIndex((t) => t > 0);
+  return (
+    <span className="mprev mprev--bars" aria-hidden="true">
+      {months.map((month, index) => (
+        <span key={month} className="mprev__col">
+          <span
+            className={index === first ? "mprev__bar mprev__bar--hot" : "mprev__bar"}
+            style={{ height: `${Math.round(4 + (26 * (totals[index] ?? 0)) / max)}px` }}
+          />
+          <span className="mprev__tick">{monthShort(month)}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// Les comptes prêts à grandir, côte à côte, à la taille de leur ARR
+function GrowthStrip({ values }: { values: number[] }) {
+  return (
+    <span className="mprev mprev--strip" aria-hidden="true">
+      {values.map((value, index) => (
+        <span key={index} className="mprev__seg" style={{ flexGrow: value }} />
+      ))}
+    </span>
+  );
+}
+
+// La charge de chacun, en barres ; ambre au-delà du seuil
+function TeamBars({ team }: { team: TeamMemberLoad[] }) {
+  const max = Math.max(...team.map((m) => m.situations), 1);
+  return (
+    <span className="mprev mprev--team" aria-hidden="true">
+      {team.slice(0, 4).map((m) => (
+        <span key={m.name} className="mprev__person">
+          <span className="mprev__who">{firstName(m.name)}</span>
+          <span className="mprev__track">
+            <span
+              className={m.situations >= HEAVY_LOAD ? "mprev__load mprev__load--heavy" : "mprev__load"}
+              style={{ width: `${(100 * m.situations) / max}%` }}
+            />
+          </span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 // Le compte ouvert dans le tiroir
 type OpenAccount = { customerId: string; companyName: string };
 
@@ -187,7 +274,16 @@ export default function MorningTiles({
   const morningOf = (name: string) =>
     brief.teamLoad.find((m) => m.name === name)?.situations ?? 0;
 
-  type Tile = { key: TileKey; label: string; value: string; sub: string; alert: boolean; disabled: boolean };
+  type Tile = {
+    key: TileKey;
+    label: string;
+    value: string;
+    sub: string;
+    alert: boolean;
+    disabled: boolean;
+    preview: ReactNode;
+  };
+  const teamByLoad = [...team].sort((a, b) => b.situations - a.situations);
   const tiles: Tile[] = [
     {
       key: "since",
@@ -206,6 +302,7 @@ export default function MorningTiles({
           : `of your ${followTotal} decisions on ${longDay(followUps?.sinceAsOf ?? brief.asOf)}`,
       alert: followWorse > 0,
       disabled: followTotal === 0,
+      preview: followUps && followTotal > 0 ? <FollowDots items={followUps.items} /> : null,
     },
     {
       key: "next",
@@ -216,6 +313,7 @@ export default function MorningTiles({
       }`,
       alert: !q4Decision && next.accounts > 0,
       disabled: next.accounts === 0,
+      preview: next.keyAccounts.length > 0 ? <RenewalBars from={next.from} rows={next.keyAccounts} /> : null,
     },
     {
       key: "growth",
@@ -227,6 +325,10 @@ export default function MorningTiles({
       ).toLowerCase()}`,
       alert: false,
       disabled: brief.readyToGrow.length === 0,
+      preview:
+        brief.readyToGrow.length > 0 ? (
+          <GrowthStrip values={[...brief.readyToGrow].map((s) => s.arrAtStake).sort((a, b) => b - a)} />
+        ) : null,
     },
     {
       key: "team",
@@ -239,6 +341,7 @@ export default function MorningTiles({
         : "",
       alert: !!heaviest && heaviest.situations >= HEAVY_LOAD,
       disabled: team.length === 0,
+      preview: team.length > 0 ? <TeamBars team={teamByLoad} /> : null,
     },
   ];
 
@@ -455,6 +558,7 @@ export default function MorningTiles({
               <span className="mtile__label">{t.label}</span>
               <span className="mtile__value">{t.value}</span>
               <span className="mtile__sub">{t.sub}</span>
+              {t.preview}
               <svg className="mtile__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" />
               </svg>
