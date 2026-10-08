@@ -219,14 +219,14 @@ export default function DecisionDesk({
           </AnimatePresence>
         </div>
       ) : (
-        <div className="desk__clear">
-          <h3 className="desk__clear-title">Your desk is clear.</h3>
-          <p className="desk__clear-text">
-            {formatMoney(covered)} of the {formatMoney(atRisk)} at risk now has
-            an owner and a deadline. Your agents will follow up and tell you
-            what changed.
-          </p>
-        </div>
+        // Toutes les cartes sont décidées : le bilan du matin
+        <MorningRecap
+          asOf={asOf}
+          decisions={decisions}
+          covered={covered}
+          atRisk={atRisk}
+          upside={upside}
+        />
       )}
 
       <div className="desk__after" aria-live="polite">
@@ -249,6 +249,86 @@ export default function DecisionDesk({
         </p>
       )}
     </section>
+  );
+}
+
+// =========================================================
+// LE BILAN DU MATIN : ce que le VP a fait, en quatre chiffres
+// Tout vient de la liste des décisions (rien n'est inventé).
+// =========================================================
+
+// "2026-08-31" → "September 30" : le dernier jour du mois suivant
+function nextBriefLabel(asOf: string): string {
+  const [year, month] = asOf.split("-").map(Number);
+  return new Date(Date.UTC(year ?? 2026, (month ?? 1) + 1, 0)).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function plural(n: number, one: string, many: string): string {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+function MorningRecap({
+  asOf,
+  decisions,
+  covered,
+  atRisk,
+  upside,
+}: {
+  asOf: string;
+  decisions: Decision[];
+  covered: number;
+  atRisk: number;
+  upside: number;
+}) {
+  // On compte chaque type de décision
+  const count = (...actions: Action[]) =>
+    decisions.filter((d) => actions.includes(d.action)).length;
+  const toTeam = count("delegate", "route", "send");
+  const mine = count("take");
+  const later = count("later");
+
+  // Les tuiles du bilan : on n'affiche que celles qui ont quelque chose à dire
+  const stats: { value: string; label: string }[] = [];
+  if (atRisk > 0) {
+    stats.push({ value: formatMoney(covered), label: `of ${formatMoney(atRisk)} at risk now has an owner` });
+  }
+  if (toTeam > 0) stats.push({ value: String(toTeam), label: toTeam === 1 ? "decision handed to your team" : "decisions handed to your team" });
+  if (mine > 0) stats.push({ value: String(mine), label: mine === 1 ? "account you kept for yourself" : "accounts you kept for yourself" });
+  if (upside > 0) stats.push({ value: formatMoney(upside), label: "of growth sent to an account executive" });
+  if (later > 0) stats.push({ value: String(later), label: later === 1 ? "card back on your desk tomorrow" : "cards back on your desk tomorrow" });
+
+  return (
+    <motion.div
+      className="recap"
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.45, ease: EASE }}
+    >
+      <h3 className="recap__title">Your morning is done.</h3>
+      <p className="recap__text">
+        {plural(decisions.length, "decision", "decisions")}, every card has an answer. Your agents
+        will check on them in the {nextBriefLabel(asOf)} brief.
+      </p>
+
+      <ul className="recap__stats">
+        {stats.map((stat, index) => (
+          <motion.li
+            key={stat.label}
+            className="recap__stat"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.15 + index * 0.08, ease: EASE }}
+          >
+            <span className="recap__value">{stat.value}</span>
+            <span className="recap__label">{stat.label}</span>
+          </motion.li>
+        ))}
+      </ul>
+    </motion.div>
   );
 }
 
