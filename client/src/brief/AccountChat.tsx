@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { askAccount, type ChatTurn } from "./chatApi";
+import type { AccountEvidence } from "./evidenceApi";
 import "./AccountChat.css";
 
 // =========================================================
@@ -9,12 +10,63 @@ import "./AccountChat.css";
 // qui prépare le plan, le responsable et le courriel.
 // =========================================================
 
-// Des questions qui marchent pour n'importe quel compte
-const SUGGESTIONS = [
+// Des questions qui marchent pour n'importe quel compte (pour compléter)
+const GENERIC = [
   "What changed recently?",
-  "What did the customer tell us?",
   "When did the first warning appear?",
+  "What did the customer tell us?",
 ];
+
+const MAX_SUGGESTIONS = 3;
+
+// "2026-10-15" → "October 15"
+function dayLabel(isoDate: string): string {
+  return new Date(`${isoDate}T12:00:00Z`).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+// Les questions suggérées, choisies d'après les données du compte.
+// Ce sont des questions sur les FAITS : l'agent cite les données, il ne prédit rien.
+export function suggestQuestions(evidence: AccountEvidence | null): string[] {
+  const picks: string[] = [];
+  if (evidence) {
+    const types = new Set(evidence.signals.map((s) => s.type));
+    const history = evidence.history;
+    const latest = history.at(-1);
+    const before = history.at(-4); // trois mois plus tôt
+    const usageFell =
+      types.has("Usage Drop") ||
+      (latest !== undefined && before !== undefined && before.utilizationPct - latest.utilizationPct >= 10);
+    const usageRose =
+      latest !== undefined && before !== undefined && latest.utilizationPct - before.utilizationPct >= 10;
+    const openTickets = evidence.events.filter(
+      (e) => e.kind === "ticket" && e.detail.toLowerCase() !== "closed"
+    ).length;
+    const hasComments = evidence.events.some((e) => e.kind === "feedback" && e.comment);
+
+    if (usageFell) picks.push("What happened around the time usage dropped?");
+    if (openTickets > 0) {
+      picks.push(openTickets === 1 ? "What is the open ticket about?" : `What are the ${openTickets} open tickets about?`);
+    } else if (types.has("Support Spike")) {
+      picks.push("Which problems keep coming back in support?");
+    }
+    if (types.has("Negative Feedback") || hasComments) picks.push("What did the customer say in their feedback?");
+    if (usageRose) picks.push("How has usage grown over the last months?");
+    if (evidence.nextRenewal && evidence.daysToRenewal !== null && evidence.daysToRenewal <= 120) {
+      picks.push(`What changed since the last renewal, before the one on ${dayLabel(evidence.nextRenewal)}?`);
+    }
+  }
+  // On complète avec les questions génériques, sans doublon de sujet
+  for (const question of GENERIC) {
+    if (picks.length >= MAX_SUGGESTIONS) break;
+    const feedbackTwice = question.includes("customer tell") && picks.some((p) => p.includes("feedback"));
+    if (!picks.includes(question) && !feedbackTwice) picks.push(question);
+  }
+  return picks.slice(0, MAX_SUGGESTIONS);
+}
 
 // Ce que l'agent fait, en mots simples
 const TOOL_LABELS: Record<string, string> = {
@@ -38,16 +90,22 @@ export default function AccountChat({
   customerId,
   companyName,
   asOf,
+  evidence = null,
 }: {
   customerId: string;
   companyName: string;
   asOf: string; // la date du brief
+  evidence?: AccountEvidence | null; // les données du tiroir, pour choisir les suggestions
 }) {
   const [thread, setThread] = useState<Exchange[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+
+  // Une question déjà posée disparaît des suggestions
+  const asked = new Set(thread.map((e) => e.question));
+  const suggestions = suggestQuestions(evidence).filter((q) => !asked.has(q));
 
   // Si le tiroir se ferme pendant une réponse, on annule la requête
   useEffect(() => {
@@ -133,8 +191,11 @@ export default function AccountChat({
         It reads the same data as this drawer, and nothing after the date of the brief.
       </p>
 
+      {suggestions.length > 0 && (
+        <p className="achat__hint">{thread.length === 0 ? "Suggested for this account" : "You could also ask"}</p>
+      )}
       <div className="achat__chips">
-        {SUGGESTIONS.map((question) => (
+        {suggestions.map((question) => (
           <button
             key={question}
             type="button"
@@ -203,4 +264,4 @@ export default function AccountChat({
       </p>
     </section>
   );
-}
+}

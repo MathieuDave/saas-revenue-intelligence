@@ -411,7 +411,12 @@ export default function EvidenceDrawer({
               </p>
 
               {/* La conversation avec l'agent, sur ce compte seulement */}
-              <AccountChat customerId={customerId} companyName={companyName} asOf={asOf} />
+              <AccountChat
+                customerId={customerId}
+                companyName={companyName}
+                asOf={asOf}
+                evidence={data}
+              />
             </>
           )}
         </div>
@@ -419,4 +424,4 @@ export default function EvidenceDrawer({
     </div>,
     document.body
   );
-}
+}
