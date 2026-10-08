@@ -13,6 +13,10 @@ export type QuarterGoal = {
   pctBooked?: number;
   pctForecast?: number;
   method?: string;
+  // Pour montrer le calcul (« How are these numbers calculated? »)
+  typicalMonthArr?: number; // un mois typique = le trimestre moyen ÷ 3
+  monthsRemaining?: number; // les mois entiers qui restent au trimestre
+  basedOn?: { quarter: string; netNewArr: number }[]; // les trimestres utilisés
 };
 
 export type Situation = {

@@ -1,0 +1,124 @@
+/* =========================================================
+   LE CALCUL DE L'OBJECTIF ET DE LA PRÉVISION
+   ========================================================= */
+
+.gmath {
+  margin-top: 6px;
+}
+
+.gmath__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gmath__toggle:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.gmath__toggle:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.gmath__chevron {
+  transition: transform 0.2s ease;
+}
+
+.gmath__toggle[aria-expanded="true"] .gmath__chevron {
+  transform: rotate(180deg);
+}
+
+/* height: auto s'anime : on cache ce qui dépasse pendant l'ouverture */
+.gmath__panel {
+  overflow: hidden;
+}
+
+.gmath__inner {
+  margin-top: 8px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06), 0 12px 30px -20px rgba(19, 32, 59, 0.25);
+}
+
+.gmath__cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.gmath__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.gmath__lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gmath__line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.gmath__line strong {
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gmath__line--total {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.gmath__line--total strong {
+  font-size: 17px;
+}
+
+.gmath__note {
+  margin: 14px 0 0;
+  color: var(--ink-soft);
+  font-family: var(--font-voice);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .gmath__cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gmath__chevron {
+    transition: none;
+  }
+}

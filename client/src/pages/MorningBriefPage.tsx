@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
 
@@ -14,6 +14,7 @@ import { fetchDecisions } from "../brief/decisionsApi";
 import TrustLine from "../brief/TrustLine";
 import MorningTiles from "../brief/MorningTiles";
 import MorningPicker from "../brief/MorningPicker";
+import GoalMath from "../brief/GoalMath";
 import BootSequence, { BriefSkeleton } from "../brief/BootSequence";
 import { CountUp, EASE, Reveal } from "../brief/motionKit";
 import { markIntroPlayed, shouldPlayIntro, todayKey } from "../brief/intro";
@@ -185,6 +186,7 @@ function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
       </div>
 
       <figcaption className="goal__method">How the goal is set: {goal.method}.</figcaption>
+      <GoalMath goal={goal} />
     </figure>
   );
 }
@@ -199,6 +201,11 @@ function MorningBriefPage() {
   const navigate = useNavigate();
   const month = readMonth(searchParams.get("month"));
   const isLatest = month === LATEST_MONTH;
+
+  // Le sens du changement de matin : -1 vers le passé, +1 vers le présent.
+  // Un ref (et non un state) : il ne doit pas provoquer de nouveau rendu.
+  const shownMonth = useRef<string | null>(null);
+  const direction = useRef(0);
 
   // Ce que la section de suivi a trouvé, pour la bande des agents
   const [followUps, setFollowUps] = useState<FollowUpSummary | null>(null);
@@ -233,6 +240,12 @@ function MorningBriefPage() {
 
   useEffect(() => {
     const controller = new AbortController();
+
+    // Un matin plus récent arrivera par la droite, un plus ancien par la gauche
+    if (shownMonth.current !== null && shownMonth.current !== month) {
+      direction.current = month > shownMonth.current ? 1 : -1;
+    }
+    shownMonth.current = month;
 
     // Nouveau matin : on repart d'une page vide (le squelette s'affiche)
     setBrief(null);
@@ -318,8 +331,15 @@ function MorningBriefPage() {
         )}
 
         {ready && (
-          // key : changer de matin recrée toute la page (pile, cartes, sections)
-          <main className="brief__main" key={brief.month}>
+          // key : changer de matin recrée toute la page (pile, cartes, sections).
+          // La page glisse depuis le côté du matin choisi.
+          <motion.main
+            className="brief__main"
+            key={brief.month}
+            initial={{ opacity: 0, x: direction.current * 48 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.45, ease: EASE }}
+          >
               <section className="brief__opening">
                 <h1 className="brief__headline">
                   {buildHeadline(brief).map((line, index) => (
@@ -370,7 +390,7 @@ function MorningBriefPage() {
                   onFollowUps={setFollowUps}
                 />
               </Reveal>
-          </main>
+          </motion.main>
         )}
       </div>
     </div>
@@ -378,4 +398,4 @@ function MorningBriefPage() {
   );
 }
 
-export default MorningBriefPage;
+export default MorningBriefPage;
