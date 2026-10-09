@@ -152,27 +152,6 @@
   font-weight: 600;
 }
 
-/* La pastille = la couleur de sa partie du rail */
-.goal__swatch {
-  flex: 0 0 10px;
-  height: 10px;
-  border-radius: 3px;
-}
-
-.goal__swatch--booked {
-  background: var(--ink);
-}
-
-.goal__swatch--goal {
-  box-sizing: border-box;
-  border: 2px solid var(--ink);
-  background: #fff;
-}
-
-.goal__swatch--forecast {
-  background: var(--dawn);
-}
-
 .goal__num {
   margin-top: 6px;
   font-size: 28px;
@@ -196,36 +175,18 @@
   font-weight: 600;
 }
 
-.goal__rail {
-  position: relative;
-  height: 6px;
-  margin-top: 14px;
-  border-radius: 3px;
-  background: var(--line);
+/* Sous la prévision : le risque du trimestre encore sans plan */
+.goal__risk {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(19, 32, 59, 0.1);
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  line-height: 1.4;
 }
 
-.goal__forecast,
-.goal__booked {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: 3px;
-}
-
-.goal__forecast {
-  background: var(--dawn);
-}
-
-.goal__booked {
-  background: var(--ink);
-}
-
-.goal__mark {
-  position: absolute;
-  top: -6px;
-  bottom: -6px;
-  width: 2px;
-  margin-left: -1px;
-  background: var(--ink);
+.goal__risk--open {
+  color: #8a5208;
 }
 
 .goal__method {

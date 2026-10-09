@@ -196,6 +196,34 @@ export function liveTeamLoad(
   }));
 }
 
+// Un plan = un responsable et une échéance (« Not today » n'en est pas un)
+function hasPlan(d: Decision): boolean {
+  return d.action === "delegate" || d.action === "take" || d.action === "route";
+}
+
+// La ligne sous la prévision : les risques du bureau qui renouvellent avant la fin
+// du trimestre, et la part encore sans plan. On ne l'additionne jamais à la prévision.
+export function unplannedThisQuarter(
+  items: DeskItem[],
+  decisions: Decision[],
+  daysLeft: number
+) {
+  let atRisk = 0;
+  let unplanned = 0;
+
+  for (const item of items) {
+    if (item.kind !== "risk") continue;
+    const days = item.situation.daysToRenewal;
+    if (days === null || days > daysLeft) continue;
+
+    atRisk += item.arr;
+    const decision = decisions.find((d) => d.id === item.id);
+    if (!decision || !hasPlan(decision)) unplanned += item.arr;
+  }
+
+  return { atRisk, unplanned };
+}
+
 // La jauge : l'ARR à risque qui a un responsable et une échéance
 export function coverage(items: DeskItem[], decisions: Decision[]) {
   const atRisk = items
@@ -209,8 +237,7 @@ export function coverage(items: DeskItem[], decisions: Decision[]) {
     const item = items.find((i) => i.id === d.id);
     if (!item) continue;
 
-    const owned = d.action === "delegate" || d.action === "take" || d.action === "route";
-    if ((item.kind === "risk" || item.kind === "q4") && owned) covered += item.arr;
+    if ((item.kind === "risk" || item.kind === "q4") && hasPlan(d)) covered += item.arr;
     if (item.kind === "grow" && d.action === "send") upside += item.arr;
   }
 

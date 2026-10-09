@@ -4,6 +4,7 @@ import { MotionConfig, motion } from "motion/react";
 
 import type { BriefResponse, DeskReturn, QuarterGoal } from "../brief/types";
 import {
+  addDays,
   countWord,
   formatMoney,
   shortQuarter,
@@ -22,6 +23,7 @@ import { markIntroPlayed, shouldPlayIntro, todayKey } from "../brief/intro";
 import {
   buildDesk,
   liveTeamLoad,
+  unplannedThisQuarter,
   type Decision,
 } from "../brief/deskItems";
 import "./MorningBriefPage.css";
@@ -110,28 +112,39 @@ function buildBootLines(brief: BriefResponse, deskCount: number): string[] {
 }
 
 // =========================================================
-// L'OBJECTIF DU TRIMESTRE : trois tuiles lisibles + le rail
-// La pastille de chaque tuile a la couleur de sa partie du rail.
+// L'OBJECTIF DU TRIMESTRE : trois tuiles lisibles
+// (pas de barre : elle ne faisait que répéter les tuiles)
 // =========================================================
 
-function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
+function GoalTrack({
+  goal,
+  play,
+  asOf,
+  risk,
+}: {
+  goal: QuarterGoal;
+  play: boolean;
+  asOf: string;
+  risk: { atRisk: number; unplanned: number };
+}) {
   if (!goal.available) return null;
+
+  // « Sep 30 » : le dernier jour du trimestre
+  const quarterEnd = new Date(`${addDays(asOf, goal.daysLeft ?? 0)}T12:00:00Z`).toLocaleDateString(
+    "en-US",
+    { month: "short", day: "numeric", timeZone: "UTC" }
+  );
 
   const goalArr = goal.goalArr ?? 0;
   const booked = goal.bookedArr ?? 0;
   const forecast = goal.forecastArr ?? 0;
   const reached = (goal.pctForecast ?? 0) >= 100;
 
-  // L'échelle laisse un peu d'air après la valeur la plus haute
-  const scale = Math.max(goalArr, forecast) * 1.04;
-  const pct = (value: number) => `${(100 * value) / scale}%`;
-
   return (
     <figure className="goal">
       <div className="goal__tiles">
         <div className="goal__tile">
           <div className="goal__label">
-            <span className="goal__swatch goal__swatch--booked" aria-hidden="true" />
             Booked so far
           </div>
           <div className="goal__num">
@@ -142,7 +155,6 @@ function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
 
         <div className="goal__tile">
           <div className="goal__label">
-            <span className="goal__swatch goal__swatch--goal" aria-hidden="true" />
             {shortQuarter(goal.quarter)} goal
           </div>
           <div className="goal__num">
@@ -155,7 +167,6 @@ function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
 
         <div className="goal__tile">
           <div className="goal__label">
-            <span className="goal__swatch goal__swatch--forecast" aria-hidden="true" />
             Forecast at a typical pace
           </div>
           <div className="goal__num">
@@ -166,24 +177,24 @@ function GoalTrack({ goal, play }: { goal: QuarterGoal; play: boolean }) {
               ? `${goal.pctForecast}% of the goal`
               : `${goal.pctForecast}% of the goal, ${formatMoney(goalArr - forecast)} short`}
           </div>
-        </div>
-      </div>
 
-      {/* Les barres se remplissent pendant l'ouverture */}
-      <div className="goal__rail" aria-hidden="true">
-        <motion.div
-          className="goal__forecast"
-          initial={{ width: play ? "0%" : pct(forecast) }}
-          animate={{ width: pct(forecast) }}
-          transition={{ duration: 1, delay: play ? 0.7 : 0, ease: EASE }}
-        />
-        <motion.div
-          className="goal__booked"
-          initial={{ width: play ? "0%" : pct(booked) }}
-          animate={{ width: pct(booked) }}
-          transition={{ duration: 0.9, delay: play ? 0.5 : 0, ease: EASE }}
-        />
-        <div className="goal__mark" style={{ left: pct(goalArr) }} />
+          {/* À côté de la prévision, jamais additionné : ce qui renouvelle ce trimestre sans plan */}
+          {risk.atRisk > 0 && (
+            <motion.div
+              key={risk.unplanned === 0 ? "planned" : "unplanned"}
+              className={
+                risk.unplanned === 0 ? "goal__risk" : "goal__risk goal__risk--open"
+              }
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: EASE }}
+            >
+              {risk.unplanned === 0
+                ? `Every account at risk renewing before ${quarterEnd} has a plan`
+                : `${formatMoney(risk.unplanned)} at risk renews before ${quarterEnd} with no plan yet`}
+            </motion.div>
+          )}
+        </div>
       </div>
 
       <figcaption className="goal__method">How the goal is set: {goal.method}.</figcaption>
@@ -383,7 +394,12 @@ function MorningBriefPage() {
                 </Reveal>
 
                 <Reveal play={play} delay={0.45}>
-                  <GoalTrack goal={brief.goal} play={play} />
+                  <GoalTrack
+                    goal={brief.goal}
+                    play={play}
+                    asOf={brief.asOf}
+                    risk={unplannedThisQuarter(desk, decisions, brief.goal.daysLeft ?? 0)}
+                  />
                 </Reveal>
 
                 {/* Ce que les agents ont fait cette nuit : se ferme une fois lu */}

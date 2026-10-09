@@ -82,6 +82,7 @@ Frontend : `npm run build` (vérifie les types) et `npm run lint`. Le backend n'
 - **Les agents constatent, ils ne prouvent pas de causalité.** Dire « depuis », jamais « grâce à » : les données ne contiennent aucune action humaine.
 - **Un prompt est une consigne, pas une garantie.** Le code impose les garde-fous (compte verrouillé, au moins 184 jours de tickets, 6 mois d'usage).
 - La jauge d'objectif = ARR à risque sur le bureau qui a **un responsable ET une échéance**. Jamais une probabilité.
+- La ligne sous la prévision (« $X at risk renews before … with no plan yet ») est mise **à côté** de la prévision, jamais additionnée (double comptage, et ce serait prétendre qu'un plan sauve le revenu). Pas de barre sous les tuiles de l'objectif : elle répétait les tuiles.
 - Règle de répartition v2 (Today / Ready to grow / Info / Team) : voir `server/src/routes/brief.ts`. Ne pas la changer sans en parler.
 - Signaux (`gold_customer_signal_events`) : Usage Drop, Support Spike, Negative Feedback, Downgrade, Churn, Expansion Ready.
 - Chiffres de confiance de référence : 120 clients perdus, 102 (85 %) signalés dans les 3 mois avant, 2,3 mois d'avance en moyenne. Angle mort : les réductions de contrat.
@@ -96,7 +97,7 @@ Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul acce
 
 - (Optionnel) Cache de `/api/brief` par mois : le brief répond en ~1 s une fois l'entrepôt réveillé, masqué par l'animation d'ouverture.
 - Page histoire `/story` (portable en CSS 3D, histoire d'Orion Analytics), construite après le peaufinage de l'app.
-- Prévision qui bouge, puis polish. Signaux de glissement lent et de réduction de contrat.
+- Polish de l'interface. Signaux de glissement lent et de réduction de contrat.
 - Nettoyer les composants orphelins : `SituationFeed.tsx`, `SignalFeed.tsx/.css`, `AgentInvestigation.tsx/.css`.
 - Corriger `customers.ts` (V1) avec des requêtes paramétrées. Mettre l'application en ligne.
 
