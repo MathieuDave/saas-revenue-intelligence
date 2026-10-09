@@ -1,149 +1,144 @@
 # SaaS Revenue Intelligence
 
-A full-stack Revenue Intelligence platform built to help Revenue, Customer Success, and Sales teams understand revenue performance, identify retention risks, uncover expansion opportunities, and prioritize customer actions.
+**A Morning Brief for a VP of Revenue.** Every morning, AI agents read every customer account and put the few **decisions** that matter on the VP's desk (retention risks, renewals, growth opportunities) instead of a dashboard to explore.
 
-The project combines a modern React application, an Express API, Databricks analytics, explainable scoring models, and a conversational AI experience powered by Databricks Genie.
+The project has two versions, kept side by side on purpose:
 
----
+| | V2: Morning Brief (`/brief`) | V1: Dashboard (`/`) |
+|---|---|---|
+| Question it answers | *What do I need to decide this morning?* | *What is happening in my revenue?* |
+| Experience | A stack of decision cards, one at a time | Charts, tables and filters to explore |
+| AI | Agents that investigate an account and explain what they saw | A conversational assistant (Databricks Genie) |
 
-## Business Problem
+V1 is kept unchanged as the "before".
 
-SaaS teams often have customer, usage, support, revenue, and feedback data spread across different systems.
-
-This makes it difficult to answer questions such as:
-
-- Which customers require immediate retention attention?
-- How much ARR is currently exposed to elevated risk?
-- Which accounts show the strongest expansion signals?
-- Which customers are renewing soon?
-- What action should a Customer Success or Revenue team prioritize next?
-
-This project centralizes those signals into a single Revenue Intelligence application.
+> The data is **synthetic** (a fictional SaaS company, 1,620 customers) and stops on **August 31, 2026**. The reference brief is August 2026.
 
 ---
 
-## Application
+## V2: The Morning Brief
 
-The application includes five main experiences:
+### Screenshots
 
-### Executive Overview
+![The decision desk](docs/screenshots/v2/decision-desk.png)
 
-A high-level view of revenue performance and business priorities.
+![The Account Analyst investigating an account](docs/screenshots/v2/investigate.png)
 
-Key metrics include:
+![Since last month: what happened after last month's decisions](docs/screenshots/v2/since-last-month.png)
 
-- Annual Recurring Revenue
-- MRR Growth
-- Net Revenue Retention
-- Priority ARR at Risk
-- Expansion Priority Accounts
+### How a morning works
 
-The page also includes:
+1. **The agents prepare the brief.** Four agents each do one job:
+   - **Signal Watcher** reads every account and finds the ones that changed this month (usage drop, support spike, negative feedback, downgrade, churn, expansion ready).
+   - **Briefing Writer** keeps the decisions that need the VP, routes the rest to the team, and writes the brief.
+   - **Trend Scout** finds next quarter's renewals that already show a warning sign.
+   - **Follow-up Tracker** checks what happened to the accounts decided last month.
+2. **The VP decides, one card at a time.** Each card says why the account is on the desk, what happens if nothing is done and how much ARR is at stake. The VP can delegate it to a team member with a deadline, take it, or set it aside for today (*Not today*). Every decision is saved, and it can be undone.
+3. **The VP can dig deeper before deciding:**
+   - **See the data**: the signals, usage, tickets and feedback behind the card.
+   - **Investigate**: the *Account Analyst* agent investigates the account live, streams each source it reads, then returns a diagnosis and a plan.
+   - **Ask the Account Analyst**: a conversation about this account, with suggested questions built from its data.
+4. **Next month, the loop closes.** *Since last month* compares each decided account before and after: lost, shrank, worse, same or better. An account that got worse can be **put back on the desk**, and the server checks that it really did before accepting it.
 
-- Monthly Recurring Revenue Trend
-- Monthly Revenue Movements
-- Top Retention Priorities
-- Top Expansion Priorities
+### Principles built into the code
 
----
+- **Agents observe; they do not prove causality.** The data contains no human action, so the brief says an account improved *since* a decision, never *because of* it.
+- **A prompt is an instruction, not a guarantee.** Guardrails are enforced in code: the agent is locked to the account it investigates, and always reads at least 184 days of tickets and 6 months of usage.
+- **The quarter goal gauge is never a probability.** It counts the ARR at risk on the desk that has **an owner and a deadline**.
+- **Every sentence is generated from the data**, never written by hand for a specific account.
+- **The brief shows its own track record**: of the 120 customers lost, 102 (85%) were flagged in the 3 months before, on average 2.3 months ahead. Known blind spot: contract reductions.
+- Strict input validation on the server (201/204/400/409, IDs generated server-side), parameterized SQL only, and "reduce motion" respected.
 
-### Customer Risk
+### Performance
 
-Identifies and prioritizes customers with elevated churn and retention risk.
-
-The page includes:
-
-- Priority ARR at Risk
-- Critical Risk Accounts
-- High Risk Accounts
-- Renewals in the Next 30 Days
-- Risk Distribution
-- ARR by Risk Level
-- Risk Score Contribution
-- Renewal Urgency
-- Searchable and paginated priority account table
-
-The risk score is explainable and based on customer signals rather than a black-box churn probability.
+The SQL warehouse sleeps when idle, so the first query after a pause takes 17 to 27 s. The server **warms up** the warehouse and the follow-up cache as soon as it starts. Follow-ups are **cached per month** (about 2 s down to 0.01 s), and the cache is cleared whenever a decision changes.
 
 ---
 
-### Expansion Opportunities
+## Architecture
 
-Identifies customers showing strong signals for account expansion.
+```mermaid
+flowchart LR
+    A[React 19 + TypeScript<br/>Vite, Motion, Recharts] -->|HTTP / JSON + SSE| B[Node.js + Express 5]
+    B --> C[Databricks SQL Warehouse]
+    C --> D[Gold tables<br/>health, signals, tickets]
+    C --> E[vp_decisions<br/>vp_desk_returns]
+    B -->|agent loop + tools| F[LLM on Databricks<br/>Model Serving]
+    B -->|V1 assistant| G[Databricks Genie]
+```
 
-The page includes:
+- **Agents** share one engine (`server/src/agents/agentLoop.ts`). The model calls tools (`get_customer_profile`, `get_usage_history`, `get_support_tickets`, `get_feedback`) that run parameterized SQL, and each step is streamed to the browser with Server-Sent Events.
+- **Decisions** are written to Databricks (`vp_decisions`), so the brief remembers what the VP decided and the next month can follow up.
 
-- Expansion Priority Accounts
-- ARR in Expansion Accounts
-- Very High Priority Opportunities
-- High Priority Opportunities
-- Opportunity Distribution
-- ARR by Opportunity Level
-- Expansion Score Contribution
-- Expansion Opportunities by Plan
-- Searchable, filterable, sortable, and paginated account table
+| Folder | Stack |
+|---|---|
+| `client/` | React 19, Vite, TypeScript, Motion, Recharts, react-markdown |
+| `server/` | Express 5, TypeScript (tsx), `@databricks/sql` |
 
----
+### Main API routes (V2)
 
-### Customer 360
-
-Provides a complete customer-level view.
-
-Users can search and select any active customer and analyze:
-
-- ARR
-- Risk Score
-- Opportunity Score
-- Days to Renewal
-- License Utilization
-- Revenue History
-- Product Usage
-- Support Activity
-- Customer Feedback
-- Account Profile
-- Recommended Next Action
+| Route | Purpose |
+|---|---|
+| `GET /api/brief?month=` | The morning brief: desk, team, info, goal |
+| `GET/POST/DELETE /api/decisions` | The VP's decisions |
+| `GET /api/followups?month=` | Last month's decisions vs what happened |
+| `/api/returns` | "Put back on my desk" |
+| `GET /api/agents/account-analyst/:id/stream` | Live investigation (SSE) |
+| `GET /api/accounts/:id/evidence` · `POST /api/accounts/:id/ask` | Evidence drawer and conversation (SSE) |
 
 ---
 
-### Ask RevenueAI
+## Run it locally
 
-A conversational Revenue Intelligence assistant powered by Databricks Genie.
+You need a Databricks workspace with the project schema, the Databricks CLI, and Node.js.
 
-Users can ask questions such as:
+```bash
+# 1. Sign in to Databricks (also the fix when the session expires)
+databricks auth login --profile <your-profile>
 
-- Which customers should I prioritize this week?
-- Which accounts have the highest revenue risk?
-- Where are the strongest expansion opportunities?
-- Which customers are renewing in the next 30 days?
+# 2. Backend (port 3000)
+cd server
+npm install
+npx tsx src/index.ts
 
-RevenueAI supports conversational follow-up questions while querying the underlying analytics environment.
+# 3. Frontend (port 5173)
+cd client
+npm install
+npm run dev
+```
+
+`server/.env` needs:
+
+```
+DATABRICKS_SERVER_HOSTNAME=...
+DATABRICKS_HTTP_PATH=...
+DATABRICKS_CONFIG_PROFILE=...
+DATABRICKS_GENIE_AGENT_ID=...   # V1 assistant only
+```
+
+Then open `http://localhost:5173/brief`.
 
 ---
-## Application Preview
 
-### Executive Overview
+## V1: The Dashboard (the "before")
 
-![Executive Overview](docs/screenshots/overview.png)
+The first version is a classic Revenue Intelligence dashboard, kept as it was.
 
-### Customer Risk
+- **Executive Overview**: ARR, MRR growth, net revenue retention, ARR at risk, expansion accounts, revenue trends.
+- **Customer Risk**: an explainable risk score built from customer signals, risk distribution, renewal urgency, priority account table.
+- **Expansion Opportunities**: an expansion score, opportunity distribution, opportunities by plan.
+- **Customer 360**: revenue, usage, support, feedback and a recommended next action for any active customer.
+- **Ask RevenueAI**: a conversational assistant powered by Databricks Genie.
 
-![Customer Risk](docs/screenshots/customer-risk.png)
-
-### Expansion Opportunities
-
-![Expansion Opportunities](docs/screenshots/expansion.png)
-
-### Customer 360
-
-![Customer 360](docs/screenshots/customer-360.png)
-
-### Ask RevenueAI
+| Executive Overview | Customer Risk |
+|---|---|
+| ![Executive Overview](docs/screenshots/overview.png) | ![Customer Risk](docs/screenshots/customer-risk.png) |
+| **Expansion Opportunities** | **Customer 360** |
+| ![Expansion Opportunities](docs/screenshots/expansion.png) | ![Customer 360](docs/screenshots/customer-360.png) |
 
 ![Ask RevenueAI](docs/screenshots/ask-revenueai.png)
 
-## Key Business Metrics
-
-Data snapshot: **August 31, 2026**
+### Key business metrics (August 31, 2026)
 
 | Metric | Value |
 |---|---:|
@@ -153,8 +148,6 @@ Data snapshot: **August 31, 2026**
 | MRR Growth | 3.03% |
 | Net Revenue Retention | 101.46% |
 | Priority ARR at Risk | $246.05K |
-| Critical Risk Accounts | 4 |
-| High Risk Accounts | 40 |
 | Expansion Priority Accounts | 452 |
 | ARR in Expansion Accounts | $3.47M |
 
@@ -162,16 +155,6 @@ The dataset contains **1,620 historical SaaS customers**, including 1,500 active
 
 ---
 
-## Architecture
+## What I learned
 
-```mermaid
-flowchart LR
-    A[React + TypeScript] -->|HTTP / JSON| B[Node.js + Express]
-    B --> C[Databricks SQL Warehouse]
-    C --> D[Unity Catalog]
-    D --> E[Silver / Core Tables]
-    D --> F[Gold Analytics Tables]
-
-    A -->|Ask RevenueAI| B
-    B --> G[Databricks Genie]
-    G --> F
+V1 answered "what is happening?" but left the VP to find what to do. V2 flips this: the agents do the reading, and the human makes the decisions. Building it taught me backend fundamentals (REST and SSE routes, input validation, parameterized SQL, caching and cache invalidation) and how to keep AI agents honest with guardrails enforced in code.
