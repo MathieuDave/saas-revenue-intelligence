@@ -3,6 +3,7 @@ import { Router } from "express";
 import type { connectToDatabricks } from "../databricks.js";
 import { runAccountAnalyst } from "../agents/accountAnalyst.js";
 import { AS_OF_DATE } from "../agents/tools.js";
+import { agentErrorEvent } from "../llm.js";
 
 type DatabricksClient =
   Awaited<ReturnType<typeof connectToDatabricks>>;
@@ -71,7 +72,7 @@ export function createAgentsRouter(databricks: DatabricksClient) {
         );
       } catch (error) {
         console.error("Account Analyst error:", error);
-        send("error", { message: "The investigation failed. Please try again." });
+        send("error", agentErrorEvent(error, "The investigation failed. Please try again."));
       } finally {
         // 5. Toujours terminer proprement
         send("done", {});

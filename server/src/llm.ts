@@ -72,6 +72,33 @@ export type ModelReply = {
 // JETON : obtenu via le CLI Databricks, gardé en cache
 // =========================================================
 
+// Une erreur à part : les routes la reconnaissent et l'expliquent clairement
+export class SessionExpiredError extends Error {
+  constructor(profile: string) {
+    super(
+      `Databricks session expired. Run: databricks auth login --profile ${profile} ` +
+        `then try again (no need to restart the backend).`
+    );
+    this.name = "SessionExpiredError";
+  }
+}
+
+// Ce qu'une route d'agent envoie au navigateur quand ça plante.
+// La commande de reconnexion va dans le terminal, la page garde un message neutre.
+export function agentErrorEvent(
+  error: unknown,
+  fallback: string
+): { code: string; message: string } {
+  if (error instanceof SessionExpiredError) {
+    console.error(`\n>>> ${error.message}\n`);
+    return {
+      code: "databricks_session_expired",
+      message: "The data connection expired. Reconnect to Databricks, then try again.",
+    };
+  }
+  return { code: "agent_failed", message: fallback };
+}
+
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getToken(): Promise<string> {
@@ -85,12 +112,17 @@ async function getToken(): Promise<string> {
   }
 
   // 2. Sinon, on lance la même commande que dans le terminal
-  const { stdout } = await execFileAsync("databricks", [
-    "auth",
-    "token",
-    "-p",
-    profile,
-  ]);
+  let stdout: string;
+  try {
+    ({ stdout } = await execFileAsync("databricks", ["auth", "token", "-p", profile]));
+  } catch (error) {
+    // Le CLI refuse de donner un jeton : la session Databricks a expiré
+    const text = error instanceof Error ? error.message : String(error);
+    if (/refresh token|invalid_grant|auth login/i.test(text)) {
+      throw new SessionExpiredError(profile);
+    }
+    throw error;
+  }
 
   const parsed = JSON.parse(stdout) as {
     access_token: string;

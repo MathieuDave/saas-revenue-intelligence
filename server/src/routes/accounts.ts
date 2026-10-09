@@ -3,6 +3,7 @@ import { Router } from "express";
 import type { connectToDatabricks } from "../databricks.js";
 import { runAccountChat, type ChatTurn } from "../agents/accountChat.js";
 import { AS_OF_DATE } from "../agents/tools.js";
+import { agentErrorEvent } from "../llm.js";
 
 type DatabricksClient =
   Awaited<ReturnType<typeof connectToDatabricks>>;
@@ -556,7 +557,10 @@ export function createAccountsRouter(databricks: DatabricksClient) {
       );
     } catch (error) {
       console.error("Account chat error:", error);
-      send("error", { message: "The Account Analyst could not answer. Please try again." });
+      send(
+        "error",
+        agentErrorEvent(error, "The Account Analyst could not answer. Please try again.")
+      );
     } finally {
       send("done", {});
       if (!closed) res.end();

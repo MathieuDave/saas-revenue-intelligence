@@ -94,7 +94,7 @@ Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul acce
 
 ## À faire plus tard
 
-- Cache de `/api/brief` par mois (à ajouter aussi au préchauffage).
+- (Optionnel) Cache de `/api/brief` par mois : le brief répond en ~1 s une fois l'entrepôt réveillé, masqué par l'animation d'ouverture.
 - Message clair quand la session Databricks expire (au lieu de « Could not finish »).
 - Page histoire `/story` (portable en CSS 3D, histoire d'Orion Analytics), construite après le peaufinage de l'app.
 - Prévision qui bouge, puis polish. Signaux de glissement lent et de réduction de contrat.
