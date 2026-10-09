@@ -74,7 +74,8 @@ Frontend : `npm run build` (vérifie les types) et `npm run lint`. Le backend n'
   `databricks auth login --profile dbc-34eda56e-c826`
   puis réessayer. Pas besoin de redémarrer le backend.
 - Les requêtes sont **toujours paramétrées** (`:nom`), jamais de valeurs collées dans le SQL. Les identifiants du schéma viennent d'une constante.
-- Lenteur connue (mesurée le 9 oct. 2026) : le **premier appel** après une pause prend 17 à 27 s, car l'entrepôt SQL Databricks se réveille. Ensuite, chaque requête coûte environ 2 s (ouverture de session + requête). `/api/followups` est en cache : 0,01 s dès le 2e appel. Pistes : préchauffer au démarrage du serveur, réutiliser la session.
+- Lenteur connue (mesurée le 9 oct. 2026) : le **premier appel** après une pause prend 17 à 27 s, car l'entrepôt SQL Databricks se réveille. Ensuite, chaque requête coûte environ 2 s (ouverture de session + requête). `/api/followups` est en cache : 0,01 s dès le 2e appel. Au démarrage, `index.ts` préchauffe l'entrepôt et le cache du suivi du mois de démo (« Warm-up done in … s ») : lancer le backend quelques minutes avant une démo, l'entrepôt se rendort après un moment sans requête. Piste : réutiliser la session.
+- La démo d'août a besoin de décisions en juillet (sinon la tuile « Since last month » est vide).
 
 ## Règles à ne pas casser
 
@@ -93,7 +94,7 @@ Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul acce
 
 ## À faire plus tard
 
-- Cache de `/api/brief` par mois. Préchauffage au démarrage (réveiller l'entrepôt et remplir les caches avant la démo).
+- Cache de `/api/brief` par mois (à ajouter aussi au préchauffage).
 - Message clair quand la session Databricks expire (au lieu de « Could not finish »).
 - Page histoire `/story` (portable en CSS 3D, histoire d'Orion Analytics), construite après le peaufinage de l'app.
 - Prévision qui bouge, puis polish. Signaux de glissement lent et de réduction de contrat.
