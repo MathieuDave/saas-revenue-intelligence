@@ -197,7 +197,7 @@ function GoalTrack({
         </div>
       </div>
 
-      <figcaption className="goal__method">How the goal is set: {goal.method}.</figcaption>
+      {/* Une seule entrée vers la méthode : le panneau détaille l'objectif ET la prévision */}
       <GoalMath goal={goal} />
     </figure>
   );

@@ -73,9 +73,11 @@ export function whyOnDesk(s: Situation): string {
   const phrase = RISK_PHRASE[mainRisk(s)] ?? "a warning sign appeared";
   const days = s.daysToRenewal;
 
+  // Le nombre de jours est déjà dans l'en-tête de la carte : on ne le répète pas
   if (days !== null && days <= 14) {
-    const prefix = s.arrAtStake < 25_000 ? `It is under the $25K line, but it` : "It";
-    return `${prefix} renews in ${days} days and ${phrase}.`;
+    return s.arrAtStake < 25_000
+      ? `Under the $25K line, but ${phrase} right before the renewal.`
+      : `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)} right before the renewal.`;
   }
   if (s.leadingRisks >= 2) {
     return `Two warning signs at once on a ${money} account.`;
@@ -88,7 +90,7 @@ export function ifNothingHappens(s: Situation): string {
   const days = s.daysToRenewal;
 
   if (days !== null && days <= 30) {
-    return `If nothing happens: the contract renews in ${days} days with no one assigned.`;
+    return "If nothing happens: the contract comes up for renewal with no one assigned.";
   }
 
   const months = days === null ? null : Math.max(1, Math.round(days / 30));

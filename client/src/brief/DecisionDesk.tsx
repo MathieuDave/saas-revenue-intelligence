@@ -51,7 +51,10 @@ function summarize(decision: Decision, item: DeskItem): string {
     case "delegate":
       return `${name} is with ${firstName(decision.person ?? "")}${by}.`;
     case "take":
-      return `You took ${name.charAt(0).toLowerCase() + name.slice(1)}${by}.`;
+      // « the team split » en minuscule, mais un nom de compte garde sa majuscule
+      return `You took ${
+        item.kind === "risk" ? name : name.charAt(0).toLowerCase() + name.slice(1)
+      }${by}.`;
     case "rebalance":
       return item.kind === "tradeoff"
         ? `Moved ${item.move} of ${firstName(item.from.name)}’s accounts to ${firstName(item.to.name)}.`
@@ -193,10 +196,18 @@ export default function DecisionDesk({
 
       <div className="gauge">
         <p className="gauge__text">
-          <span>
-            <strong>{formatMoney(covered)}</strong> of {formatMoney(atRisk)} at
-            risk now has an owner and a deadline
-          </span>
+          {/* « on your desk » : ce montant n'est ni le risque du trimestre ni celui du T4 entier */}
+          {covered === 0 ? (
+            <span>
+              <strong>{formatMoney(atRisk)}</strong> at risk on your desk, none of it has an
+              owner yet
+            </span>
+          ) : (
+            <span>
+              <strong>{formatMoney(covered)}</strong> of the {formatMoney(atRisk)} at risk on
+              your desk now has an owner and a deadline
+            </span>
+          )}
           {upside > 0 && <span>{formatMoney(upside)} of growth handed off</span>}
         </p>
         <div className="gauge__rail" aria-hidden="true">
@@ -241,9 +252,7 @@ export default function DecisionDesk({
 
       <div className="desk__after" aria-live="polite">
         <span>
-          {last && lastItem
-            ? summarize(last, lastItem)
-            : "Each decision gets an owner and a deadline, and updates your team."}
+          {last && lastItem ? summarize(last, lastItem) : ""}
         </span>
         {last && last.decisionId === null && <span>Saving…</span>}
         {last && last.decisionId !== null && (

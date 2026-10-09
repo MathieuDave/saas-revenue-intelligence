@@ -91,8 +91,8 @@ export default function GoalMath({ goal }: { goal: QuarterGoal }) {
           >
             <div className="gmath__inner">
               <div className="gmath__cols">
-                <Steps title={`The ${thisQ} goal`} swatch="goal" lines={goalLines} />
-                <Steps title="The forecast" swatch="forecast" lines={forecastLines} />
+                <Steps title={`The ${thisQ} goal`} lines={goalLines} />
+                <Steps title="The forecast" lines={forecastLines} />
               </div>
               <p className="gmath__note">
                 A simple rule you can check by hand, not a predictive model. It assumes the rest of
@@ -107,13 +107,10 @@ export default function GoalMath({ goal }: { goal: QuarterGoal }) {
 }
 
 // Une colonne de calcul : les lignes apparaissent l'une après l'autre
-function Steps({ title, swatch, lines }: { title: string; swatch: string; lines: Line[] }) {
+function Steps({ title, lines }: { title: string; lines: Line[] }) {
   return (
     <div className="gmath__col">
-      <h4 className="gmath__title">
-        <span className={`goal__swatch goal__swatch--${swatch}`} aria-hidden="true" />
-        {title}
-      </h4>
+      <h4 className="gmath__title">{title}</h4>
       <ol className="gmath__lines">
         {lines.map((line, index) => (
           <motion.li

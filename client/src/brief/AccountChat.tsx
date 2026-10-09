@@ -56,7 +56,7 @@ export function suggestQuestions(evidence: AccountEvidence | null): string[] {
     if (types.has("Negative Feedback") || hasComments) picks.push("What did the customer say in their feedback?");
     if (usageRose) picks.push("How has usage grown over the last months?");
     if (evidence.nextRenewal && evidence.daysToRenewal !== null && evidence.daysToRenewal <= 120) {
-      picks.push(`What changed since the last renewal, before the one on ${dayLabel(evidence.nextRenewal)}?`);
+      picks.push(`What changed before the ${dayLabel(evidence.nextRenewal)} renewal?`);
     }
   }
   // On complète avec les questions génériques, sans doublon de sujet
@@ -259,8 +259,7 @@ export default function AccountChat({
       </form>
 
       <p className="achat__foot">
-        The agent quotes the data and never gives a churn probability. For a plan, an owner or an
-        email, use Investigate on the card. The conversation is forgotten when you close the drawer.
+        Facts from the data, never a churn probability. For a plan, use Investigate on the card.
       </p>
     </section>
   );

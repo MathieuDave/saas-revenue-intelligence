@@ -56,12 +56,15 @@ const STATUS_LABELS: Record<FollowUpStatus, string> = {
 // ---------- Petits formats ----------
 
 // "2026-07-31" → "July 31" ; "2026-08-02" → "Aug 2"
+// Espace insécable : « July 31 » ne se coupe jamais en fin de ligne
 function longDay(isoDate: string): string {
-  return new Date(`${isoDate}T12:00:00Z`).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
+  return new Date(`${isoDate}T12:00:00Z`)
+    .toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      timeZone: "UTC",
+    })
+    .replace(" ", " ");
 }
 function shortDay(isoDate: string): string {
   return new Date(`${isoDate}T12:00:00Z`).toLocaleDateString("en-US", {
@@ -147,11 +150,15 @@ function RenewalBars({ from, rows }: { from: string; rows: { nextRenewal: string
 }
 
 // Les comptes prêts à grandir, côte à côte, à la taille de leur ARR
+// Une barre par compte, avec son montant : sans montant, des barres égales ne disent rien
 function GrowthStrip({ values }: { values: number[] }) {
   return (
     <span className="mprev mprev--strip" aria-hidden="true">
       {values.map((value, index) => (
-        <span key={index} className="mprev__seg" style={{ flexGrow: value }} />
+        <span key={index} className="mprev__grow" style={{ flexGrow: value }}>
+          <span className="mprev__seg" />
+          <span className="mprev__amount">{formatMoney(value)}</span>
+        </span>
       ))}
     </span>
   );
@@ -405,11 +412,12 @@ export default function MorningTiles({
     {
       key: "team",
       label: "Your team",
-      value: heaviest ? `${firstName(heaviest.name)} ${heaviest.situations}` : "—",
+      // Le chiffre seul ne disait pas ce qu'il compte : on nomme l'unité et la personne
+      value: heaviest ? `${heaviest.situations} accounts` : "—",
       sub: heaviest
         ? heaviest.situations !== morningOf(heaviest.name)
-          ? `the heaviest load · ${morningOf(heaviest.name)} → ${heaviest.situations} today`
-          : "the heaviest load on the team"
+          ? `on ${firstName(heaviest.name)}'s plate, the heaviest load · ${morningOf(heaviest.name)} → ${heaviest.situations} today`
+          : `on ${firstName(heaviest.name)}'s plate, the heaviest load on the team`
         : "",
       alert: !!heaviest && heaviest.situations >= HEAVY_LOAD,
       disabled: team.length === 0,

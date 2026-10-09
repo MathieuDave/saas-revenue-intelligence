@@ -3,7 +3,7 @@
    ========================================================= */
 
 .mtiles {
-  margin-top: 88px;
+  margin-top: 56px;
 }
 
 .mtiles__title {
@@ -171,7 +171,7 @@
 /* La croissance : les comptes côte à côte */
 .mprev--strip {
   gap: 3px;
-  height: 22px;
+  height: 26px;
   padding-top: 0;
   margin-bottom: 4px;
   align-items: flex-end;
@@ -183,6 +183,25 @@
   min-width: 6px;
   border-radius: 3px;
   background: var(--ink);
+}
+
+/* Croissance : la barre du compte et son montant juste en dessous */
+.mprev__grow {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 0;
+  gap: 4px;
+  min-width: 34px;
+}
+
+.mprev__grow .mprev__seg {
+  flex-basis: auto;
+}
+
+.mprev__amount {
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1;
 }
 
 /* L'équipe : une barre par personne */
