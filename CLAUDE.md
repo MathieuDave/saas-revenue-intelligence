@@ -37,7 +37,7 @@ server/   Express 5 + TypeScript (tsx) + Databricks SQL
 - `pages/MorningBriefPage.tsx` : la page, l'état partagé (décisions remontées ici), l'intro animée.
 - `brief/` : composants et logique du brief.
   - `DecisionDesk.tsx` : la pile de cartes de décision (une à la fois).
-  - `MorningTiles.tsx`, `FollowUps.tsx` : suivi des décisions du mois précédent.
+  - `MorningTiles.tsx` : « The rest of your morning », dont la tuile « Since last month » (suivi des décisions du mois précédent).
   - `EvidenceDrawer.tsx`, `AccountChat.tsx` : tiroir « See the data » et conversation « Ask the Account Analyst ».
   - `AnalystPanel.tsx` : l'enquête de l'agent en direct (SSE), ouverte par « Investigate ».
   - `deskItems.ts`, `briefText.ts` : logique pure et textes générés à partir des données.
@@ -49,7 +49,7 @@ server/   Express 5 + TypeScript (tsx) + Databricks SQL
 - `index.ts` : sépare les routes V1 et V2.
 - `routes/brief.ts` : `GET /api/brief` (agrégation de requêtes en parallèle, règles de répartition, `TEAM`, `lastDayOfMonth`).
 - `routes/decisions.ts` : `GET/POST/DELETE /api/decisions` (table `vp_decisions`).
-- `routes/followups.ts` : `GET /api/followups?month=` (décisions du mois précédent vs ce qui s'est passé).
+- `routes/followups.ts` : `GET /api/followups?month=` (décisions du mois précédent vs ce qui s'est passé). Résultat gardé en cache par mois ; `decisions.ts` l'oublie après chaque `POST`/`DELETE` réussi.
 - `routes/returns.ts` : « Put back on my desk ».
 - `routes/outcomes.ts` : `/api/outcomes`, `/api/track-record`.
 - `agents/` : `agentLoop.ts` (moteur d'agent partagé), `accountAnalyst.ts` (Investigate), `accountChat.ts` (Ask), `tools.ts` (`AS_OF_DATE`).
@@ -74,7 +74,7 @@ Frontend : `npm run build` (vérifie les types) et `npm run lint`. Le backend n'
   `databricks auth login --profile dbc-34eda56e-c826`
   puis réessayer. Pas besoin de redémarrer le backend.
 - Les requêtes sont **toujours paramétrées** (`:nom`), jamais de valeurs collées dans le SQL. Les identifiants du schéma viennent d'une constante.
-- Lenteur connue : `/api/followups` met environ 6 s. La requête est petite ; le coût vient surtout de l'ouverture d'une session Databricks à chaque appel. Pistes : cache par mois passé, réutiliser la session.
+- Lenteur connue (mesurée le 9 oct. 2026) : le **premier appel** après une pause prend 17 à 27 s, car l'entrepôt SQL Databricks se réveille. Ensuite, chaque requête coûte environ 2 s (ouverture de session + requête). `/api/followups` est en cache : 0,01 s dès le 2e appel. Pistes : préchauffer au démarrage du serveur, réutiliser la session.
 
 ## Règles à ne pas casser
 
@@ -93,7 +93,7 @@ Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul acce
 
 ## À faire plus tard
 
-- Cache de `/api/followups` et de `/api/brief` par mois.
+- Cache de `/api/brief` par mois. Préchauffage au démarrage (réveiller l'entrepôt et remplir les caches avant la démo).
 - Message clair quand la session Databricks expire (au lieu de « Could not finish »).
 - Page histoire `/story` (portable en CSS 3D, histoire d'Orion Analytics), construite après le peaufinage de l'app.
 - Prévision qui bouge, puis polish. Signaux de glissement lent et de réduction de contrat.

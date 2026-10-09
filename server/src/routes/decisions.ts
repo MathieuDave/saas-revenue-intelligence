@@ -3,6 +3,7 @@ import { Router } from "express";
 
 import type { connectToDatabricks } from "../databricks.js";
 import { TEAM } from "./brief.js";
+import { forgetAllFollowUps, forgetFollowUps } from "./followups.js";
 
 type DatabricksClient =
   Awaited<ReturnType<typeof connectToDatabricks>>;
@@ -206,6 +207,8 @@ export function createDecisionsRouter(databricks: DatabricksClient) {
         return;
       }
 
+      // Le suivi du mois suivant juge cette décision : il doit être recalculé
+      forgetFollowUps(decision.month);
       res.status(201).json({ decisionId, ...decision });
     } catch (error) {
       console.error("Decisions API error (write):", error);
@@ -225,6 +228,7 @@ export function createDecisionsRouter(databricks: DatabricksClient) {
       await run(databricks, `DELETE FROM ${TABLE} WHERE decision_id = :decisionId`, {
         decisionId,
       });
+      forgetAllFollowUps();
       res.status(204).end();
     } catch (error) {
       console.error("Decisions API error (delete):", error);

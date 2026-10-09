@@ -154,8 +154,7 @@ function buildReading(f: Omit<FollowUp, "reading">, month: string): string {
 // LA REQUÊTE (validée dans Databricks : juillet → août 2026)
 // =========================================================
 
-// Exportée : la route « Put back on my desk » s'en sert pour vérifier un compte
-export async function getFollowUps(databricks: DatabricksClient, month: string): Promise<FollowUp[]> {
+async function loadFollowUps(databricks: DatabricksClient, month: string): Promise<FollowUp[]> {
   const sinceMonth = shiftMonth(month, -1);
 
   const rows = await query(
@@ -246,6 +245,34 @@ export async function getFollowUps(databricks: DatabricksClient, month: string):
       STATUS_ORDER.indexOf(x.status) - STATUS_ORDER.indexOf(y.status) ||
       x.companyName.localeCompare(y.companyName)
   );
+}
+
+// =========================================================
+// LE CACHE
+// La santé des comptes, les signaux et les tickets ne changent plus.
+// Seules les décisions du VP bougent : on oublie le cache quand elles changent.
+// =========================================================
+
+const cache = new Map<string, FollowUp[]>(); // clé : le mois du suivi (ex. "2026-08")
+
+// Exportée : la route « Put back on my desk » s'en sert pour vérifier un compte
+export async function getFollowUps(databricks: DatabricksClient, month: string): Promise<FollowUp[]> {
+  const saved = cache.get(month);
+  if (saved) return saved;
+
+  const followUps = await loadFollowUps(databricks, month);
+  cache.set(month, followUps); // une erreur Databricks n'arrive jamais ici : rien n'est gardé
+  return followUps;
+}
+
+// Une décision du brief de juillet change → le suivi d'août n'est plus juste
+export function forgetFollowUps(briefMonth: string): void {
+  cache.delete(shiftMonth(briefMonth, 1));
+}
+
+// Une décision annulée (Undo) : on ne connaît que son id, pas son mois → on oublie tout
+export function forgetAllFollowUps(): void {
+  cache.clear();
 }
 
 // =========================================================
