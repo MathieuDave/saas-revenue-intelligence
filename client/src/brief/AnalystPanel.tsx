@@ -62,6 +62,9 @@ export default function AnalystPanel({
   const [steps, setSteps] = useState<AgentStep[]>([]);
   const [result, setResult] = useState<ReportEvent | null>(null);
   const [status, setStatus] = useState<"running" | "done" | "error">("running");
+  // Ce que le serveur a dit de l'échec (ex. session Databricks expirée)
+  const [failure, setFailure] = useState<{ code?: string; message?: string } | null>(null);
+  const expired = failure?.code === "databricks_session_expired";
 
   useEffect(() => {
     const source = new EventSource(
@@ -85,8 +88,18 @@ export default function AnalystPanel({
       setStatus((current) => (current === "error" ? current : "done"));
     });
 
-    source.addEventListener("error", () => {
+    // Deux cas arrivent ici : l'erreur envoyée par le serveur (avec un message)
+    // ou la connexion coupée (sans message)
+    source.addEventListener("error", (event) => {
       source.close();
+      const data = (event as MessageEvent).data;
+      if (typeof data === "string") {
+        try {
+          setFailure(JSON.parse(data) as { code?: string; message?: string });
+        } catch {
+          // message illisible → on garde le texte par défaut
+        }
+      }
       setStatus((current) => (current === "done" ? current : "error"));
     });
 
@@ -111,7 +124,9 @@ export default function AnalystPanel({
     status === "running"
       ? "Investigating"
       : status === "error"
-        ? "Could not finish"
+        ? expired
+          ? "Connection expired"
+          : "Could not finish"
         : `Done, ${sources.length} sources read, ${(result?.totalTokens ?? 0).toLocaleString("en-US")} tokens`;
 
   return (
@@ -138,7 +153,9 @@ export default function AnalystPanel({
 
       {status === "error" && (
         <p className="analyst__thought">
-          The investigation stopped before the end. Close it and try again.
+          {expired
+            ? failure?.message
+            : "The investigation stopped before the end. Close it and try again."}
         </p>
       )}
 

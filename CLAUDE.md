@@ -70,7 +70,7 @@ Frontend : `npm run build` (vérifie les types) et `npm run lint`. Le backend n'
 
 - Schéma : `workspace.saas_revenue_intelligence`. Tables clés : `gold_customer_monthly_health`, `gold_customer_signal_events`, `customers`, `support_tickets`, `vp_decisions`.
 - Authentification : profil CLI `dbc-34eda56e-c826`.
-- **Erreur « refresh token is invalid » / « Could not finish » dans Investigate** : la session Databricks a expiré. Corriger avec :
+- **« Connection expired » dans Investigate / Ask** (ligne `>>> Databricks session expired` dans le terminal du backend) : la session du CLI Databricks a expiré. `llm.ts` la reconnaît (`SessionExpiredError`). Corriger avec :
   `databricks auth login --profile dbc-34eda56e-c826`
   puis réessayer. Pas besoin de redémarrer le backend.
 - Les requêtes sont **toujours paramétrées** (`:nom`), jamais de valeurs collées dans le SQL. Les identifiants du schéma viennent d'une constante.
@@ -95,7 +95,6 @@ Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul acce
 ## À faire plus tard
 
 - (Optionnel) Cache de `/api/brief` par mois : le brief répond en ~1 s une fois l'entrepôt réveillé, masqué par l'animation d'ouverture.
-- Message clair quand la session Databricks expire (au lieu de « Could not finish »).
 - Page histoire `/story` (portable en CSS 3D, histoire d'Orion Analytics), construite après le peaufinage de l'app.
 - Prévision qui bouge, puis polish. Signaux de glissement lent et de réduction de contrat.
 - Nettoyer les composants orphelins : `SituationFeed.tsx`, `SignalFeed.tsx/.css`, `AgentInvestigation.tsx/.css`.
