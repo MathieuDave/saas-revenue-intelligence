@@ -82,3 +82,14 @@ export type BriefResponse = {
   team: Situation[];
   info: Situation[];
 };
+// Un compte remis sur le bureau (« Put back on my desk »)
+// Le miroir de GET /api/returns (server/src/routes/returns.ts)
+export type DeskReturn = {
+  customerId: string;
+  companyName: string;
+  status: string; // "worse" ou "shrank"
+  reading: string; // ce que le suivi a constaté
+  arr: number;
+  previousAction: string | null; // la décision du mois dernier
+  previousPerson: string | null;
+};

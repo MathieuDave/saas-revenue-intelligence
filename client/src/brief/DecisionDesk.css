@@ -23,10 +23,39 @@
   letter-spacing: -0.02em;
 }
 
-.desk__progress,
-.desk__calm {
+.desk__progress {
   color: var(--ink-soft);
   font-size: 15px;
+}
+
+/* ---------- Le matin calme : aucune décision ---------- */
+
+.desk--calm {
+  padding: 40px clamp(20px, 3vw, 40px) 32px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff 0%, #fdf6ec 100%);
+  box-shadow: 0 18px 40px -18px rgba(19, 32, 59, 0.22);
+  text-align: center;
+}
+
+.calm__sun {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 60%, #f6d39b, var(--amber));
+  box-shadow:
+    0 0 0 12px rgba(217, 142, 43, 0.12),
+    0 0 0 26px rgba(217, 142, 43, 0.06);
+}
+
+.calm__text {
+  margin: 10px auto 0;
+  max-width: 30em;
+  color: var(--ink-soft);
+  font-family: var(--font-voice);
+  font-size: 19px;
+  line-height: 1.5;
 }
 
 /* La pile : la carte au-dessus, deux bords en dessous */
@@ -608,4 +637,4 @@
 .dcard__see:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
-}
+}

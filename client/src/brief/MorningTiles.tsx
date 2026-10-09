@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
-import type { BriefResponse, TeamMemberLoad } from "./types";
+import type { BriefResponse, DeskReturn, TeamMemberLoad } from "./types";
 import { formatDate, formatMoney, shortQuarter } from "./briefText";
 import { firstName, HEAVY_LOAD, type Decision, type DeskItem } from "./deskItems";
 import type { FollowUpSummary } from "./AgentsStrip";
@@ -187,14 +187,16 @@ function AccountRow({
   companyName,
   onOpen,
   children,
+  extra,
 }: {
   customerId: string;
   companyName: string;
   onOpen: (opener: HTMLElement, account: OpenAccount) => void;
   children: ReactNode;
+  extra?: ReactNode; // un bouton À CÔTÉ de la ligne (un bouton ne peut pas en contenir un autre)
 }) {
   return (
-    <li>
+    <li className={extra ? "mrow-wrap" : undefined}>
       <button
         type="button"
         className="mrow"
@@ -207,7 +209,58 @@ function AccountRow({
           <path d="m13 6 6 6-6 6" />
         </svg>
       </button>
+      {extra}
     </li>
+  );
+}
+
+// Les statuts qui peuvent revenir sur le bureau (comme sur le serveur)
+const CAN_RETURN: FollowUpStatus[] = ["worse", "shrank"];
+
+// Le bouton « Put back on my desk » d'une ligne du suivi
+function PutBackButton({
+  customerId,
+  onDesk,
+  decided,
+  onPutBack,
+  onTakeOff,
+}: {
+  customerId: string;
+  onDesk: boolean;
+  decided: boolean;
+  onPutBack: (customerId: string) => Promise<void>;
+  onTakeOff: (customerId: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function act(action: (id: string) => Promise<void>) {
+    setBusy(true);
+    setFailed(false);
+    try {
+      await action(customerId);
+    } catch (err) {
+      console.error(err);
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (onDesk && decided) {
+    return <span className="mback mback--done">Decided today</span>;
+  }
+  if (onDesk) {
+    return (
+      <button type="button" className="mback mback--on" disabled={busy} onClick={() => void act(onTakeOff)}>
+        {busy ? "Removing…" : "On your desk · remove"}
+      </button>
+    );
+  }
+  return (
+    <button type="button" className="mback" disabled={busy} onClick={() => void act(onPutBack)}>
+      {busy ? "Checking…" : failed ? "Try again" : "Put back on my desk"}
+    </button>
   );
 }
 
@@ -217,15 +270,23 @@ export default function MorningTiles({
   decisions,
   team,
   onFollowUps,
+  returns = [],
+  onPutBack,
+  onTakeOff,
 }: {
   brief: BriefResponse;
   desk: DeskItem[];
   decisions: Decision[];
   team: TeamMemberLoad[]; // la charge mise à jour par les décisions du jour
   onFollowUps?: (summary: FollowUpSummary) => void;
+  returns?: DeskReturn[];
+  onPutBack?: (customerId: string) => Promise<void>;
+  onTakeOff?: (customerId: string) => Promise<void>;
 }) {
   const [open, setOpen] = useState<TileKey | null>(null);
   const [followUps, setFollowUps] = useState<FollowUpsResponse | null>(null);
+  // Le suivi arrive après le brief : on distingue « en chargement », « échec » et « aucun »
+  const [followState, setFollowState] = useState<"loading" | "ready" | "failed">("loading");
   const [person, setPerson] = useState<string | null>(null);
   const [account, setAccount] = useState<OpenAccount | null>(null);
   const openerRef = useRef<HTMLElement | null>(null);
@@ -233,6 +294,7 @@ export default function MorningTiles({
   // ---------- Le suivi des décisions du mois précédent ----------
   useEffect(() => {
     const controller = new AbortController();
+    setFollowState("loading");
     fetch(`${API_URL}/followups?month=${brief.month}`, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error(`API error ${response.status}`);
@@ -240,6 +302,7 @@ export default function MorningTiles({
       })
       .then((loaded) => {
         setFollowUps(loaded);
+        setFollowState("ready");
         onFollowUps?.({
           sinceAsOf: loaded.sinceAsOf,
           total: loaded.items.length,
@@ -250,6 +313,7 @@ export default function MorningTiles({
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         console.error(err);
+        setFollowState("failed");
       });
     return () => controller.abort();
     // onFollowUps vient de la page : on ne recharge que si le matin change
@@ -289,7 +353,11 @@ export default function MorningTiles({
       key: "since",
       label: "Since last month",
       value:
-        followTotal === 0
+        followState === "loading"
+          ? "Checking…"
+          : followState === "failed"
+            ? "Unavailable"
+            : followTotal === 0
           ? "None"
           : followWorse > 0
             ? `${followWorse} worse`
@@ -297,7 +365,11 @@ export default function MorningTiles({
               ? `${followBetter} better`
               : `${followTotal} steady`,
       sub:
-        followTotal === 0
+        followState === "loading"
+          ? "Your agents are reading what changed since last month"
+          : followState === "failed"
+            ? "The follow-up could not load. Check the server, then refresh."
+            : followTotal === 0
           ? "No decisions to follow up"
           : `of your ${followTotal} decisions on ${longDay(followUps?.sinceAsOf ?? brief.asOf)}`,
       alert: followWorse > 0,
@@ -365,7 +437,27 @@ export default function MorningTiles({
           </p>
           <ul className="mpanel__list">
             {followUps.items.map((f) => (
-              <AccountRow onOpen={openAccount} key={f.customerId} customerId={f.customerId} companyName={f.companyName}>
+              <AccountRow
+                onOpen={openAccount}
+                key={f.customerId}
+                customerId={f.customerId}
+                companyName={f.companyName}
+                extra={
+                  // Déjà une carte du jour (signalé à nouveau ce mois-ci) : rien à remettre
+                  CAN_RETURN.includes(f.status) &&
+                  desk.some((i) => i.id === f.customerId && !(i.kind === "risk" && i.returned)) ? (
+                    <span className="mback mback--done">Already on your desk today</span>
+                  ) : onPutBack && onTakeOff && CAN_RETURN.includes(f.status) ? (
+                    <PutBackButton
+                      customerId={f.customerId}
+                      onDesk={returns.some((r) => r.customerId === f.customerId)}
+                      decided={decisions.some((d) => d.id === f.customerId)}
+                      onPutBack={onPutBack}
+                      onTakeOff={onTakeOff}
+                    />
+                  ) : undefined
+                }
+              >
                 <span className={`mtag mtag--${f.status}`}>{STATUS_LABELS[f.status]}</span>
                 <span className="mrow__main">
                   <span className="mrow__name">{f.companyName}</span>
@@ -375,6 +467,11 @@ export default function MorningTiles({
               </AccountRow>
             ))}
           </ul>
+          {followUps.items.some((f) => CAN_RETURN.includes(f.status)) && (
+            <p className="mpanel__note">
+              An account put back on your desk becomes a new card at the end of your decisions.
+            </p>
+          )}
           <p className="mpanel__note">
             <strong>Since, not because.</strong> It shows what each account did after your decision,
             not the effect of the decision itself.

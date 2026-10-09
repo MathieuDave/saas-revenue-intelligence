@@ -1,5 +1,6 @@
 import type {
   BriefResponse,
+  DeskReturn,
   RenewalAtRisk,
   Situation,
   TeamMemberLoad,
@@ -14,7 +15,8 @@ import type {
 export const HEAVY_LOAD = 25;
 
 export type DeskItem =
-  | { kind: "risk"; id: string; arr: number; situation: Situation }
+  // returned : le compte revient du suivi (« Put back on my desk »)
+  | { kind: "risk"; id: string; arr: number; situation: Situation; returned?: DeskReturn }
   | {
       kind: "tradeoff";
       id: "rebalance";
@@ -61,8 +63,35 @@ export function firstName(fullName: string): string {
   return fullName.split(" ")[0] ?? fullName;
 }
 
-// L'ordre de la pile : les risques du jour, l'arbitrage, le T4, la croissance
-export function buildDesk(brief: BriefResponse): DeskItem[] {
+// La situation d'un compte remis sur le bureau : celle du brief si le compte
+// y figure déjà (routé à l'équipe, par exemple), sinon une version simple
+function returnedSituation(brief: BriefResponse, r: DeskReturn): Situation {
+  const known = [...brief.team, ...brief.info, ...brief.readyToGrow].find(
+    (s) => s.customerId === r.customerId
+  );
+  if (known) return { ...known, arrAtStake: known.arrAtStake || r.arr };
+  return {
+    customerId: r.customerId,
+    companyName: r.companyName,
+    industry: "",
+    companySize: "",
+    arrAtStake: r.arr,
+    signalTypes: [],
+    evidence: [r.reading],
+    leadingRisks: 0,
+    nextRenewal: null,
+    daysToRenewal: null,
+    lane: "today",
+    owner: null,
+    ownerReason: null,
+    suggestedOwner: r.previousPerson,
+    suggestedReason: r.previousPerson ? "Had it last month" : null,
+  };
+}
+
+// L'ordre de la pile : les risques du jour, l'arbitrage, le T4, la croissance,
+// puis les comptes que le VP a remis sur son bureau
+export function buildDesk(brief: BriefResponse, returns: DeskReturn[] = []): DeskItem[] {
   const items: DeskItem[] = brief.today.map((s) => ({
     kind: "risk",
     id: s.customerId,
@@ -118,6 +147,19 @@ export function buildDesk(brief: BriefResponse): DeskItem[] {
       arr: brief.readyToGrow.reduce((sum, s) => sum + s.arrAtStake, 0),
       accounts: brief.readyToGrow,
       owner: executive?.name ?? "your account executive",
+    });
+  }
+
+  // Les comptes remis sur le bureau (sauf s'ils y sont déjà comme risque du jour)
+  for (const r of returns) {
+    if (items.some((i) => i.id === r.customerId)) continue;
+    const situation = returnedSituation(brief, r);
+    items.push({
+      kind: "risk",
+      id: r.customerId,
+      arr: situation.arrAtStake,
+      situation,
+      returned: r,
     });
   }
 

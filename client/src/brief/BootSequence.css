@@ -8,7 +8,9 @@
 }
 
 .skeleton__line,
+.skeleton__tile,
 .skeleton__rail,
+.skeleton__strip,
 .skeleton__card {
   border-radius: 10px;
   background: linear-gradient(
@@ -22,7 +24,7 @@
 }
 
 .skeleton__line--xl {
-  height: 64px;
+  height: 44px;
   width: 70%;
   margin-bottom: 14px;
 }
@@ -37,15 +39,39 @@
   width: 48%;
 }
 
+.skeleton__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 56px;
+}
+
+.skeleton__tile {
+  height: 92px;
+  border-radius: 14px;
+}
+
 .skeleton__rail {
   height: 6px;
-  margin-top: 72px;
+  margin-top: 22px;
+}
+
+.skeleton__strip {
+  height: 48px;
+  margin-top: 28px;
+  border-radius: 14px;
 }
 
 .skeleton__card {
   height: 320px;
-  margin-top: 120px;
+  margin-top: 88px;
   border-radius: 18px;
+}
+
+@media (max-width: 600px) {
+  .skeleton__tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @keyframes skeleton-shine {
@@ -124,7 +150,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton__line,
+  .skeleton__tile,
   .skeleton__rail,
+  .skeleton__strip,
   .skeleton__card,
   .boot__dot {
     animation: none;

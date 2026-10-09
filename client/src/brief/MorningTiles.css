@@ -261,6 +261,68 @@
   border-top: 1px solid var(--line);
 }
 
+/* Une ligne avec un bouton à côté (le suivi) */
+.mrow-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.mrow-wrap .mrow {
+  flex: 1 1 320px;
+  width: auto;
+  min-width: 0;
+}
+
+/* « Put back on my desk » */
+.mback {
+  flex: none;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--amber);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mback:hover:not(:disabled) {
+  background: #c27a1c;
+}
+
+.mback:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.mback:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Déjà sur le bureau : discret, on peut le retirer */
+.mback--on {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+
+.mback--on:hover:not(:disabled) {
+  background: #f3f5f9;
+}
+
+.mback--done {
+  display: inline-flex;
+  align-items: center;
+  background: #eef1f7;
+  color: var(--ink-soft);
+  cursor: default;
+}
+
 /* Une ligne de compte : tout est cliquable */
 .mrow {
   display: flex;

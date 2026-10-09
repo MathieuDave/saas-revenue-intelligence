@@ -154,7 +154,8 @@ function buildReading(f: Omit<FollowUp, "reading">, month: string): string {
 // LA REQUÊTE (validée dans Databricks : juillet → août 2026)
 // =========================================================
 
-async function getFollowUps(databricks: DatabricksClient, month: string): Promise<FollowUp[]> {
+// Exportée : la route « Put back on my desk » s'en sert pour vérifier un compte
+export async function getFollowUps(databricks: DatabricksClient, month: string): Promise<FollowUp[]> {
   const sinceMonth = shiftMonth(month, -1);
 
   const rows = await query(

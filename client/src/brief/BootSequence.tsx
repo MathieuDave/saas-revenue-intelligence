@@ -62,11 +62,20 @@ export default function BootSequence({
 export function BriefSkeleton() {
   return (
     <div className="skeleton" aria-hidden="true">
+      {/* Le titre sur deux lignes, puis la phrase */}
       <div className="skeleton__line skeleton__line--xl" />
       <div className="skeleton__line skeleton__line--xl skeleton__line--short" />
       <div className="skeleton__line skeleton__line--md" />
       <div className="skeleton__line skeleton__line--md skeleton__line--short" />
+      {/* Les trois tuiles de l'objectif et le rail */}
+      <div className="skeleton__tiles">
+        <div className="skeleton__tile" />
+        <div className="skeleton__tile" />
+        <div className="skeleton__tile" />
+      </div>
       <div className="skeleton__rail" />
+      {/* La bande des agents, puis la pile de décisions */}
+      <div className="skeleton__strip" />
       <div className="skeleton__card" />
     </div>
   );

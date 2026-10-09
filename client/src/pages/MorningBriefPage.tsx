@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { MotionConfig, motion } from "motion/react";
 
-import type { BriefResponse, QuarterGoal } from "../brief/types";
+import type { BriefResponse, DeskReturn, QuarterGoal } from "../brief/types";
 import {
   countWord,
   formatMoney,
@@ -11,6 +11,7 @@ import {
 import DecisionDesk from "../brief/DecisionDesk";
 import AgentsStrip, { type FollowUpSummary } from "../brief/AgentsStrip";
 import { fetchDecisions } from "../brief/decisionsApi";
+import { fetchReturns, putBackOnDesk, takeOffDesk } from "../brief/returnsApi";
 import TrustLine from "../brief/TrustLine";
 import MorningTiles from "../brief/MorningTiles";
 import MorningPicker from "../brief/MorningPicker";
@@ -217,6 +218,9 @@ function MorningBriefPage() {
   // sections en ont besoin (la pile, l'équipe, le panneau des agents)
   const [decisions, setDecisions] = useState<Decision[]>([]);
 
+  // Les comptes que le VP a remis sur son bureau depuis le suivi
+  const [returns, setReturns] = useState<DeskReturn[]>([]);
+
   // L'ouverture complète : une fois par jour, sauf « réduire les animations »
   const [today] = useState(todayKey);
   const [play] = useState(() => shouldPlayIntro(today));
@@ -251,6 +255,7 @@ function MorningBriefPage() {
     setBrief(null);
     setError(null);
     setDecisions([]);
+    setReturns([]);
     setFollowUps(null);
 
     // Le brief et les décisions déjà prises arrivent en même temps
@@ -263,10 +268,15 @@ function MorningBriefPage() {
       return response.json() as Promise<BriefResponse>;
     });
 
-    Promise.all([loadBrief, fetchDecisions(month, controller.signal)])
-      .then(([loadedBrief, savedDecisions]) => {
+    Promise.all([
+      loadBrief,
+      fetchDecisions(month, controller.signal),
+      fetchReturns(month, controller.signal),
+    ])
+      .then(([loadedBrief, savedDecisions, savedReturns]) => {
         setBrief(loadedBrief);
         setDecisions(savedDecisions);
+        setReturns(savedReturns);
       })
       .catch((err: unknown) => {
         // Annulation volontaire (on a quitté la page) → pas une erreur
@@ -281,8 +291,22 @@ function MorningBriefPage() {
     return () => controller.abort();
   }, [month]);
 
-  // Ce qui arrive sur le bureau du VP (risques, arbitrage, T4, croissance)
-  const desk = brief ? buildDesk(brief) : [];
+  // « Put back on my desk » : le serveur vérifie, puis la carte arrive au bout de la pile
+  async function putBack(customerId: string) {
+    const saved = await putBackOnDesk(month, customerId);
+    setReturns((current) =>
+      current.some((r) => r.customerId === customerId) ? current : [...current, saved]
+    );
+  }
+
+  // Retirer le compte du bureau (tant que sa carte n'est pas décidée)
+  async function takeOff(customerId: string) {
+    await takeOffDesk(month, customerId);
+    setReturns((current) => current.filter((r) => r.customerId !== customerId));
+  }
+
+  // Ce qui arrive sur le bureau du VP (risques, arbitrage, T4, croissance, comptes remis)
+  const desk = brief ? buildDesk(brief, returns) : [];
   const team = brief ? liveTeamLoad(brief.teamLoad, desk, decisions) : [];
 
   const ready = brief !== null && !booting;
@@ -388,6 +412,9 @@ function MorningBriefPage() {
                   decisions={decisions}
                   team={team}
                   onFollowUps={setFollowUps}
+                  returns={returns}
+                  onPutBack={putBack}
+                  onTakeOff={takeOff}
                 />
               </Reveal>
           </motion.main>

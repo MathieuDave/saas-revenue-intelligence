@@ -17,6 +17,7 @@ import { createDecisionsRouter } from "./routes/decisions.js";
 import { createOutcomesRouter } from "./routes/outcomes.js";
 import { createAccountsRouter } from "./routes/accounts.js";
 import { createFollowUpsRouter } from "./routes/followups.js";
+import { createReturnsRouter } from "./routes/returns.js";
 
 const app = express();
 const PORT = 3000;
@@ -50,6 +51,7 @@ async function startServer() {
     app.use("/api", createOutcomesRouter(databricks));
     app.use("/api", createAccountsRouter(databricks));
     app.use("/api", createFollowUpsRouter(databricks));
+    app.use("/api", createReturnsRouter(databricks));
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);

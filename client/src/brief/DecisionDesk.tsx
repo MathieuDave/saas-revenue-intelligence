@@ -157,11 +157,21 @@ export default function DecisionDesk({
   // Un matin calme est aussi une bonne nouvelle
   if (total === 0) {
     return (
-      <section className="desk">
-        <h2 className="desk__title">Nothing needs you today.</h2>
-        <p className="desk__calm">
-          Your agents routed every situation to your team.
+      <section className="desk desk--calm">
+        {/* Un soleil qui se lève : le matin calme est une bonne nouvelle */}
+        <motion.div
+          className="calm__sun"
+          aria-hidden="true"
+          initial={{ opacity: 0, y: 24, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.9, ease: EASE }}
+        />
+        <h2 className="desk__title">Nothing needs you this morning.</h2>
+        <p className="calm__text">
+          Your agents read every account and routed each situation to your team. No decision is
+          waiting for you.
         </p>
+        {trust}
       </section>
     );
   }
@@ -478,21 +488,39 @@ function RiskCard({
   const recWho = firstStep ? "Account Analyst suggests" : "Playbook suggests";
   const rec = firstStep ? cleanItem(firstStep) : playbook(s);
 
+  // Un compte revenu du suivi : on rappelle la décision du mois dernier et ce qui a changé
+  const back = item.returned;
+  const lastTime = back
+    ? back.previousAction === "delegate" && back.previousPerson
+      ? `you gave it to ${firstName(back.previousPerson)}`
+      : back.previousAction === "take"
+        ? "you took it yourself"
+        : "you postponed it"
+    : "";
+
   const agentOwner = team.find((m) => m.name === report?.suggestedOwner)?.name;
   const suggestedOwner = agentOwner ?? s.suggestedOwner;
   const suggestedReason = s.suggestedReason?.toLowerCase();
 
   return (
     <CardShell
-      kind="Retention risk"
+      kind={back ? "Back on your desk" : "Retention risk"}
       title={s.companyName}
-      meta={`${s.industry}, ${s.companySize}`}
+      meta={
+        s.industry
+          ? `${s.industry}, ${s.companySize}`
+          : `You put it back on your desk this morning`
+      }
       stake={formatMoney(s.arrAtStake)}
       stakeSub="ARR at stake"
       renewal={renewalLabel(s)}
       urgent={s.daysToRenewal !== null && s.daysToRenewal <= 30}
-      why={whyOnDesk(s)}
-      ifNothing={ifNothingHappens(s)}
+      why={back ? `Last month ${lastTime}. Since then: ${back.reading}` : whyOnDesk(s)}
+      ifNothing={
+        back
+          ? "If nothing happens: the account keeps sliding with no new plan."
+          : ifNothingHappens(s)
+      }
       evidence={s.evidence}
       evidenceAction={
         <button
