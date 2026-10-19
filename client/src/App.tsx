@@ -1,5 +1,5 @@
 import "./App.css";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
 import OverviewPage from "./pages/OverviewPage";
@@ -25,12 +25,15 @@ function V1Layout() {
 function App() {
   return (
     <Routes>
+      {/* L'adresse du site ouvre le Morning Brief */}
+      <Route path="/" element={<Navigate to="/brief" replace />} />
+
       {/* V2 : le Morning Brief en pleine page, sans la sidebar V1 */}
       <Route path="/brief" element={<MorningBriefPage />} />
 
       {/* V1 : les pages d'exploration, avec la sidebar */}
       <Route element={<V1Layout />}>
-        <Route path="/" element={<OverviewPage />} />
+        <Route path="/overview" element={<OverviewPage />} />
         <Route path="/risk" element={<RiskPage />} />
         <Route path="/expansion" element={<ExpansionPage />} />
         <Route path="/customers" element={<Customer360Page />} />

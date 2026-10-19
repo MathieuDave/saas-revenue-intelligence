@@ -212,3 +212,11 @@
 .brief__main {
   min-width: 0;
 }
+
+/* ---------- Téléphone : moins d'espace vide entre les sections ---------- */
+
+@media (max-width: 640px) {
+  .brief__topbar {
+    padding: 20px 0;
+  }
+}

@@ -170,6 +170,11 @@
 }
 
 @media (max-width: 700px) {
+  /* Sur téléphone, le menu passe au-dessus du contenu (voir Sidebar.css) */
+  .app-layout {
+    flex-direction: column;
+  }
+
   .main-content {
     padding: 20px;
   }

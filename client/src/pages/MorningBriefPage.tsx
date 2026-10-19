@@ -339,7 +339,7 @@ function MorningBriefPage() {
             }
           />
 
-          <Link to="/" className="brief__explore">
+          <Link to="/overview" className="brief__explore">
             Explore the data
           </Link>
         </header>

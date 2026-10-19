@@ -23,8 +23,7 @@ function Sidebar() {
         </NavLink>
 
         <NavLink
-          to="/"
-          end
+          to="/overview"
           className={getNavClass}
         >
           Overview

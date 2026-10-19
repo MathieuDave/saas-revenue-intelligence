@@ -270,6 +270,8 @@
   /* Sur téléphone, la pastille passe sur sa propre ligne */
   .mpick {
     order: 3;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .mpick__label--full {

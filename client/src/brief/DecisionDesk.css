@@ -638,3 +638,40 @@
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
+
+/* ---------- Téléphone : boutons en grille 2×2, échéances sur une ligne ---------- */
+
+@media (max-width: 640px) {
+  .desk {
+    margin-top: 56px;
+  }
+
+  /* Quatre boutons de même largeur, sur deux lignes */
+  .dcard__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dbtn {
+    padding: 0 12px;
+    line-height: 1.2;
+  }
+
+  /* Les échéances sur une seule ligne, qu'on fait glisser du doigt */
+  .dcard__chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -20px;
+    padding: 0 20px 4px;
+    scrollbar-width: none;
+  }
+
+  .dcard__chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dchip {
+    flex: none;
+    white-space: nowrap;
+  }
+}
