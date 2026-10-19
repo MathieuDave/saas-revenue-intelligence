@@ -137,7 +137,9 @@ export function renewalLabel(s: Situation): string {
 // =========================================================
 
 export type DueOption = {
-  label: string;
+  label: string; // "Before renewal, Fri Sep 4"
+  when: string; // "Before renewal"
+  day: string; // "Fri Sep 4"
   date: string; // "2026-09-04"
   afterRenewal: boolean;
 };
@@ -189,6 +191,8 @@ export function dueOptions(s: Situation, asOf: string): DueOption[] {
     .filter((c) => (seen.has(c.date) ? false : (seen.add(c.date), true)))
     .map((c) => ({
       label: `${c.label}, ${shortDay(c.date)}`,
+      when: c.label,
+      day: shortDay(c.date),
       date: c.date,
       afterRenewal: s.nextRenewal !== null && c.date > s.nextRenewal,
     }));

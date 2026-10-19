@@ -580,7 +580,10 @@ function RiskCard({
               className={index === dueIndex ? "dchip dchip--on" : "dchip"}
               onClick={() => setDueIndex(index)}
             >
-              {option.label}
+              {/* Sur ordinateur : « Before renewal, Fri Sep 4 ». Sur téléphone : le nom puis la date dessous */}
+              <span className="dchip__when">{option.when}</span>
+              <span className="dchip__sep">, </span>
+              <span className="dchip__day">{option.day}</span>
             </button>
           ))}
         </div>
