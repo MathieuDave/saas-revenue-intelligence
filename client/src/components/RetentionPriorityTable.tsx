@@ -34,7 +34,7 @@ function RetentionPriorityTable() {
     useState<SortDirection>("desc");
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/retention-priorities")
+    fetch("/api/retention-priorities")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Unable to fetch retention priorities");

@@ -52,7 +52,7 @@ function CopilotPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/api/genie/chat",
+        "/api/genie/chat",
         {
           method: "POST",
           headers: {

@@ -8,7 +8,7 @@ import "./AnalystPanel.css";
 // Dans le monde des agents : la nuit.
 // =========================================================
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "/api";
 
 // Les mêmes formes que côté serveur (server/src/agents/accountAnalyst.ts)
 type AgentStep =

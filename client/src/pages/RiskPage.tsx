@@ -55,7 +55,7 @@ function RiskPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/customer-risk")
+    fetch("/api/customer-risk")
       .then((response) => {
         if (!response.ok) {
           throw new Error(

@@ -91,7 +91,7 @@ function ExpansionPage() {
         setError(null);
 
         const response = await fetch(
-          "http://localhost:3000/api/expansion"
+          "/api/expansion"
         );
 
         if (!response.ok) {

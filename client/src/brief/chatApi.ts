@@ -3,7 +3,7 @@
 // Le miroir de POST /api/accounts/:customerId/ask
 // =========================================================
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "/api";
 
 export type ChatTurn = {
   role: "user" | "assistant";

@@ -36,7 +36,7 @@ function ExpansionPriorityTable() {
     useState<SortDirection>("desc");
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/expansion-priorities")
+    fetch("/api/expansion-priorities")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Unable to fetch expansion priorities");

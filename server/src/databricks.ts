@@ -18,11 +18,13 @@ const client = new DBSQLClient();
 export async function connectToDatabricks() {
   console.log("Connecting to Databricks...");
 
-  const connection = await client.connect({
-    authType: "databricks-oauth",
-    host,
-    path,
-  });
+  // Avec un jeton (Vercel) : le serveur se connecte tout seul.
+  // Sans jeton (PC) : connexion par le navigateur, comme avant.
+  const token = process.env.DATABRICKS_TOKEN;
+
+  const connection = token
+    ? await client.connect({ host, path, token })
+    : await client.connect({ authType: "databricks-oauth", host, path });
 
   console.log("Databricks connection initialized.");
 

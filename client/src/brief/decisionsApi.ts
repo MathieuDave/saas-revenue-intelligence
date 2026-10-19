@@ -5,7 +5,7 @@ import type { Decision, DeskItem } from "./deskItems";
 // Toute la communication avec le serveur au même endroit.
 // =========================================================
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "/api";
 
 // Relire les décisions déjà prises pour ce brief
 export async function fetchDecisions(

@@ -3,7 +3,7 @@
 // Le miroir de GET /api/accounts/:customerId/evidence (server/src/routes/accounts.ts)
 // =========================================================
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "/api";
 
 export type MonthPoint = {
   month: string; // "2026-08"

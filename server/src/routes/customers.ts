@@ -7,6 +7,8 @@ type DatabricksClient =
 
 type DatabricksRow = Record<string, unknown>;
 
+const CUSTOMER_ID = /^C\d{4}$/;
+
 export function createCustomersRouter(
   databricks: DatabricksClient
 ) {
@@ -65,10 +67,19 @@ export function createCustomersRouter(
       try {
         const customerId = req.params.customerId;
 
+        // Un identifiant valide ressemble à C0822 : sinon, on n'interroge pas Databricks.
+        if (!CUSTOMER_ID.test(customerId)) {
+          return res.status(400).json({
+            error: "Unknown customer id.",
+          });
+        }
+
+        // L'identifiant voyage à côté du SQL (:customer_id), jamais collé dedans.
         async function executeQuery(sql: string) {
           const operation =
             await session.executeStatement(sql, {
               runAsync: true,
+              namedParameters: { customer_id: customerId },
             });
 
           try {
@@ -111,7 +122,7 @@ export function createCustomersRouter(
           LEFT JOIN workspace.saas_revenue_intelligence.gold_customer_actions_explained a
             ON o.customer_id = a.customer_id
 
-          WHERE o.customer_id = '${customerId}'
+          WHERE o.customer_id = :customer_id
 
           LIMIT 1
         `);
@@ -135,7 +146,7 @@ if (!customerRow) {
             negative_feedbacks_last_90d,
             avg_score_last_90d
           FROM workspace.saas_revenue_intelligence.gold_customer_signal_profile
-          WHERE customer_id = '${customerId}'
+          WHERE customer_id = :customer_id
           LIMIT 1
         `);
 
@@ -150,7 +161,7 @@ if (!customerRow) {
             month,
             ending_mrr
           FROM workspace.saas_revenue_intelligence.revenue_monthly
-          WHERE customer_id = '${customerId}'
+          WHERE customer_id = :customer_id
           ORDER BY month
         `);
 
@@ -168,7 +179,7 @@ if (!customerRow) {
             month,
             license_utilization_pct
           FROM workspace.saas_revenue_intelligence.product_usage_monthly
-          WHERE customer_id = '${customerId}'
+          WHERE customer_id = :customer_id
           ORDER BY month
         `);
 

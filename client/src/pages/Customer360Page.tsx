@@ -146,7 +146,7 @@ const filteredCustomers = useMemo(() => {
     async function loadCustomers() {
       try {
         const response = await fetch(
-          "http://localhost:3000/api/customers"
+          "/api/customers"
         );
 
         if (!response.ok) {
@@ -181,7 +181,7 @@ const filteredCustomers = useMemo(() => {
         setError(null);
 
         const response = await fetch(
-          `http://localhost:3000/api/customers/${selectedCustomerId}`
+          `/api/customers/${selectedCustomerId}`
         );
 
         if (!response.ok) {

@@ -4,7 +4,7 @@ import type { DeskReturn } from "./types";
 // LES APPELS À /api/returns (« Put back on my desk »)
 // =========================================================
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "/api";
 
 // Les comptes remis sur le bureau ce matin-là.
 // Si la table n'existe pas encore (ou le serveur échoue), le brief s'affiche quand même.

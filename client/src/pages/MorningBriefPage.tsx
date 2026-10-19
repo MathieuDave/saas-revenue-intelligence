@@ -28,7 +28,7 @@ import {
 } from "../brief/deskItems";
 import "./MorningBriefPage.css";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "/api";
 
 // Les matins disponibles : les données vont de 2025 au 31 août 2026.
 // Le brief s'ouvre sur le dernier matin, ou sur celui demandé dans l'adresse :

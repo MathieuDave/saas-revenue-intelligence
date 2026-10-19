@@ -16,7 +16,7 @@ import "./MorningTiles.css";
 // compte ouvre le tiroir « See the data ».
 // =========================================================
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "/api";
 
 type TileKey = "since" | "next" | "growth" | "team";
 

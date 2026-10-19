@@ -22,7 +22,7 @@ function RevenueMovementsChart() {
   const [data, setData] = useState<RevenueMovementData[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/revenue-movements")
+    fetch("/api/revenue-movements")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Unable to fetch revenue movements");

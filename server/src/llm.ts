@@ -102,6 +102,11 @@ export function agentErrorEvent(
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getToken(): Promise<string> {
+  // 0. Jeton fixe dans .env (Vercel) → pas besoin du CLI
+  if (process.env.DATABRICKS_TOKEN) {
+    return process.env.DATABRICKS_TOKEN;
+  }
+
   // 1. Jeton encore valide en mémoire → on le réutilise
   if (cachedToken && Date.now() < cachedToken.expiresAt) {
     return cachedToken.value;

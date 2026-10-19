@@ -12,7 +12,7 @@ import "./TrackRecord.css";
 // matin passé, avec ce qui est arrivé quand personne n'a agi.
 // =========================================================
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "/api";
 
 // Le matin d'exemple : choisi pour ses issues contrastées
 // (un compte perdu, un stable, un qui grandit). Les chiffres

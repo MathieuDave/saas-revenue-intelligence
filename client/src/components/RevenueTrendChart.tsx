@@ -18,7 +18,7 @@ function RevenueTrendChart() {
   const [data, setData] = useState<RevenueTrendData[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/revenue-trend")
+    fetch("/api/revenue-trend")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Unable to fetch revenue trend data");

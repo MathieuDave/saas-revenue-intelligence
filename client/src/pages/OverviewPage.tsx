@@ -20,7 +20,7 @@ function OverviewPage() {
   const [overviewData, setOverviewData] = useState<OverviewData | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/overview")
+    fetch("/api/overview")
       .then((response) => response.json())
       .then((data) => {
         setOverviewData(data);
