@@ -8,7 +8,7 @@ Application « Morning Brief » pour un VP Revenue d'une entreprise SaaS. Chaque
 
 - **Projet portfolio** : il doit créer un effet « wow » en entrevue et servir à apprendre le backend.
 - **Les données sont synthétiques** et s'arrêtent au **31 août 2026**. Le brief de référence est celui d'août 2026.
-- La page principale est `/brief` (l'adresse `/` y redirige). La V1 (tableau de bord) est gardée telle quelle comme « l'avant » : **on ne touche pas à son code**. Exceptions autorisées le 19 oct. 2026 : les adresses `/api`, la sécurité (`customers.ts`) et l'affichage téléphone (CSS seulement, l'ordinateur ne change pas). La page Overview de la V1 est à `/overview`.
+- La page principale est `/brief` (l'adresse `/` y redirige). La V1 (tableau de bord) est gardée telle quelle comme « l'avant » : **on ne touche pas à son code**. Exceptions autorisées le 19 oct. 2026 : les adresses `/api`, la sécurité (`customers.ts`) et l'affichage téléphone (CSS à la fin de `App.css`, plus `useChartHeight` dans les 12 graphiques ; l'ordinateur ne change pas). La page Overview de la V1 est à `/overview`.
 - Le Command Center a été supprimé le 7 oct. 2026 : ne pas le recréer.
 
 ## Le propriétaire
@@ -105,6 +105,21 @@ Frontend : `npm run build` (vérifie les types) et `npm run lint` (10 erreurs co
 
 Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul accent ambré `#d98e2b`. Polices : Schibsted Grotesk (interface) et Newsreader (la voix des agents). Deux colonnes : brief à gauche, panneau sombre des agents à droite (une seule colonne sur téléphone). Interface en **anglais**.
 
+## Affichage téléphone (19 oct. 2026)
+
+Toutes les règles « téléphone » sont dans des `@media (max-width: …)` : l'affichage sur ordinateur ne doit jamais changer.
+
+- **Brief** (seuil 640 px, 520 px pour les tuiles) :
+  - Objectif : une seule carte en liste (nom à gauche, montant à droite). La ligne du risque reste sous la prévision.
+  - Bande des agents : titre et ✕ sur une ligne, pastilles en 2×2.
+  - Carte de décision : actions sur une ligne (la principale à droite, sous le pouce), « Not today » en petit lien. Échéances en 3 cases égales : `DueOption` a `when` et `day` en plus de `label`.
+  - Tuiles « The rest of your morning » : texte à gauche, aperçu à droite. Le détail s'ouvre sous la tuile touchée (variables CSS `--i` et `--open`).
+- **V1** (seuil 700 px, bloc « V1 SUR TÉLÉPHONE » à la fin de `App.css`, préfixe `.main-content`) :
+  - Menu en bande défilante en haut, KPI deux par ligne, filtres deux par ligne.
+  - Tableaux en fiches : les étiquettes des colonnes sont écrites dans le CSS (`td:nth-child(n)::before`). **Si une colonne est ajoutée ou déplacée dans un tableau V1, mettre ces étiquettes à jour.**
+  - Graphiques : `components/useChartHeight.ts` donne la hauteur d'origine sur ordinateur et une plus petite sur téléphone. Recharts impose sa hauteur : le CSS seul ne peut pas la changer.
+- Vérifier sans téléphone : captures à 390 px de large avec Chrome sans interface (`puppeteer-core`, dans le dossier temporaire). Pour les graphiques, prendre une capture de l'écran visible : une capture « pleine page » redimensionne la fenêtre et déforme les graphiques Recharts.
+
 ## À faire plus tard
 
 - (Optionnel) Cache de `/api/brief` par mois : le brief répond en ~1 s une fois l'entrepôt réveillé, masqué par l'animation d'ouverture.
@@ -112,7 +127,7 @@ Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul acce
 - Polish de l'interface. Signaux de glissement lent et de réduction de contrat.
 - Nettoyer les composants orphelins : `SituationFeed.tsx`, `SignalFeed.tsx/.css`, `AgentInvestigation.tsx/.css`.
 - Mot de passe sur le site (frontend **et** backend) si le lien est un jour partagé (CV, LinkedIn).
-- Après la période d'entrevues : supprimer le jeton Databricks `vercel-morning-brief`. Supprimer les 3 déploiements de diagnostic dans Vercel.
+- Après la période d'entrevues : supprimer le jeton Databricks `vercel-morning-brief`.
 
 ## Documents de référence
 
