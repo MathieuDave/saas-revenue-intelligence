@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { GenieClient } from "@databricks/sdk-genie/v1";
+import { newTokenCredentials, tokenProviderFn } from "@databricks/sdk-auth";
 
 const spaceId = process.env.DATABRICKS_GENIE_AGENT_ID;
 
@@ -7,10 +8,27 @@ if (!spaceId) {
   throw new Error("DATABRICKS_GENIE_AGENT_ID is missing from .env");
 }
 
-// Uses Databricks unified authentication.
+// With DATABRICKS_TOKEN (Vercel): the token is used directly, the CLI profile is ignored.
+// Without it (PC): Databricks unified authentication, where
 // DATABRICKS_CONFIG_PROFILE in .env points to the OAuth profile
 // created with `databricks auth login`.
-const genieClient = new GenieClient({});
+const token = process.env.DATABRICKS_TOKEN;
+const host = (process.env.DATABRICKS_SERVER_HOSTNAME ?? "")
+  .replace(/^https?:\/\//, "")
+  .replace(/\/$/, "");
+
+const genieClient = new GenieClient(
+  token
+    ? {
+        host: `https://${host}`,
+        credentials: newTokenCredentials(
+          "pat",
+          tokenProviderFn(async () => ({ value: token }))
+        ),
+        profileOptions: { noProfile: true, disableEnv: true },
+      }
+    : {}
+);
 
 
 export async function askGenie(
