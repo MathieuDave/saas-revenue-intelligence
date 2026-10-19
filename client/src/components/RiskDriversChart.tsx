@@ -9,14 +9,16 @@ import {
 } from "recharts";
 
 import type { RiskDriverData } from "../pages/RiskPage";
+import { useChartHeight } from "./useChartHeight";
 
 type Props = {
   data: RiskDriverData[];
 };
 
 function RiskDriversChart({ data }: Props) {
+  const chartHeight = useChartHeight(300, 200);
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={chartHeight}>
       <BarChart
         data={data}
         layout="vertical"

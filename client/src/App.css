@@ -524,13 +524,13 @@
 
 @media (max-width: 700px) {
   /* ---------- KPI : deux par ligne, compacts ---------- */
-  .main-content :is(.kpi-grid, .risk-kpi-grid, .expansion-kpi-grid) {
+  .main-content :is(.kpi-grid, .risk-kpi-grid, .expansion-kpi-grid, .customer-signals-grid) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
   /* Un nombre impair : la dernière prend toute la ligne */
-  .main-content :is(.kpi-grid, .risk-kpi-grid, .expansion-kpi-grid) > :last-child:nth-child(odd) {
+  .main-content :is(.kpi-grid, .risk-kpi-grid, .expansion-kpi-grid, .customer-signals-grid) > :last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
 
@@ -569,7 +569,8 @@
     font-size: 13px;
   }
 
-  .main-content .chart-card-content {
+  .main-content .chart-card-content,
+  .main-content .arr-by-risk-chart {
     min-height: 0;
   }
 

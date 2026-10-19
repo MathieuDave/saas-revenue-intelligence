@@ -7,6 +7,7 @@ import {
 } from "recharts";
 
 import type { OpportunityLevelData } from "../pages/ExpansionPage";
+import { useChartHeight } from "./useChartHeight";
 
 type Props = {
   data: OpportunityLevelData[];
@@ -39,6 +40,7 @@ function formatMoney(value: number) {
 }
 
 function ArrByOpportunityChart({ data }: Props) {
+  const chartHeight = useChartHeight(300, 250);
   const sortedData = [...data].sort(
     (a, b) =>
       opportunityOrder.indexOf(a.opportunityLevel) -
@@ -59,7 +61,7 @@ function ArrByOpportunityChart({ data }: Props) {
     <div
       style={{
         width: "100%",
-        height: "300px",
+        height: `${chartHeight}px`,
         display: "flex",
         flexDirection: "column",
       }}

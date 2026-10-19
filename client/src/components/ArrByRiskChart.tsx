@@ -7,6 +7,7 @@ import {
 } from "recharts";
 
 import type { RiskLevelData } from "../pages/RiskPage";
+import { useChartHeight } from "./useChartHeight";
 
 type Props = {
   data: RiskLevelData[];
@@ -39,6 +40,7 @@ function formatMoney(value: number) {
 }
 
 function ArrByRiskChart({ data }: Props) {
+  const chartHeight = useChartHeight(300, 250);
   const sortedData = [...data].sort(
     (a, b) =>
       riskOrder.indexOf(a.riskLevel) -
@@ -59,7 +61,7 @@ function ArrByRiskChart({ data }: Props) {
     <div
       style={{
         width: "100%",
-        height: "300px",
+        height: `${chartHeight}px`,
         display: "flex",
         flexDirection: "column",
       }}

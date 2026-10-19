@@ -10,6 +10,7 @@ import {
 } from "recharts";
 
 import type { RiskLevelData } from "../pages/RiskPage";
+import { useChartHeight } from "./useChartHeight";
 
 type Props = {
   data: RiskLevelData[];
@@ -23,8 +24,9 @@ const colors: Record<string, string> = {
 };
 
 function RiskDistributionChart({ data }: Props) {
+  const chartHeight = useChartHeight(300, 190);
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={chartHeight}>
       <BarChart
         data={data}
         layout="vertical"

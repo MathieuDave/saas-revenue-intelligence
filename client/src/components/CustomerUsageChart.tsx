@@ -9,6 +9,7 @@ import {
 } from "recharts";
 
 import type { CustomerUsageData } from "../pages/Customer360Page";
+import { useChartHeight } from "./useChartHeight";
 
 type Props = {
   data: CustomerUsageData[];
@@ -23,8 +24,9 @@ function formatMonth(value: string) {
 }
 
 function CustomerUsageChart({ data }: Props) {
+  const chartHeight = useChartHeight(300, 200);
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={chartHeight}>
       <LineChart data={data}>
         <CartesianGrid
           strokeDasharray="3 3"

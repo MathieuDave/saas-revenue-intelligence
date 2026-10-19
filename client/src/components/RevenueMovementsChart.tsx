@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { useChartHeight } from "./useChartHeight";
 
 type RevenueMovementData = {
   month: string;
@@ -19,6 +20,7 @@ type RevenueMovementData = {
 };
 
 function RevenueMovementsChart() {
+  const chartHeight = useChartHeight(340, 250);
   const [data, setData] = useState<RevenueMovementData[]>([]);
 
   useEffect(() => {
@@ -68,7 +70,7 @@ function RevenueMovementsChart() {
   };
 
   return (
-    <ResponsiveContainer width="100%" height={340}>
+    <ResponsiveContainer width="100%" height={chartHeight}>
       <BarChart
         data={formattedData}
         margin={{

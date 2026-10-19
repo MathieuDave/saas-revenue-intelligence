@@ -8,6 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useChartHeight } from "./useChartHeight";
 
 type RevenueTrendData = {
   month: string;
@@ -15,6 +16,7 @@ type RevenueTrendData = {
 };
 
 function RevenueTrendChart() {
+  const chartHeight = useChartHeight(320, 220);
   const [data, setData] = useState<RevenueTrendData[]>([]);
 
   useEffect(() => {
@@ -59,7 +61,7 @@ function RevenueTrendChart() {
   };
 
   return (
-    <ResponsiveContainer width="100%" height={320}>
+    <ResponsiveContainer width="100%" height={chartHeight}>
       <AreaChart
         data={formattedData}
         margin={{

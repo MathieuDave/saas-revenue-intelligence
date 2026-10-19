@@ -10,6 +10,7 @@ import {
 } from "recharts";
 
 import type { OpportunityLevelData } from "../pages/ExpansionPage";
+import { useChartHeight } from "./useChartHeight";
 
 type Props = {
   data: OpportunityLevelData[];
@@ -30,6 +31,7 @@ const opportunityOrder = [
 ];
 
 function OpportunityDistributionChart({ data }: Props) {
+  const chartHeight = useChartHeight(300, 190);
   const sortedData = [...data].sort(
     (a, b) =>
       opportunityOrder.indexOf(a.opportunityLevel) -
@@ -37,7 +39,7 @@ function OpportunityDistributionChart({ data }: Props) {
   );
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={chartHeight}>
       <BarChart
         data={sortedData}
         layout="vertical"
