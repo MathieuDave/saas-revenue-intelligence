@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import type { BriefResponse, DeskReturn, TeamMemberLoad } from "./types";
@@ -643,7 +643,7 @@ export default function MorningTiles({
       </h2>
 
       <div className="mtiles__grid">
-        {tiles.map((t) => {
+        {tiles.map((t, index) => {
           const isOpen = open === t.key;
           const classes = [
             "mtile",
@@ -658,6 +658,7 @@ export default function MorningTiles({
               disabled={t.disabled}
               aria-expanded={isOpen}
               aria-controls="mtiles-panel"
+              style={{ "--i": index } as CSSProperties}
               onClick={() => setOpen(isOpen ? null : t.key)}
             >
               <span className="mtile__label">{t.label}</span>
@@ -670,24 +671,26 @@ export default function MorningTiles({
             </button>
           );
         })}
-      </div>
 
-      {/* Le panneau de la tuile ouverte : un seul à la fois */}
-      <AnimatePresence mode="wait" initial={false}>
-        {open && (
-          <motion.div
-            key={open}
-            id="mtiles-panel"
-            className="mpanel"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: EASE }}
-          >
-            {panel(open)}
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Le panneau de la tuile ouverte : un seul à la fois.
+            Dans la grille pour que, sur téléphone, il s'affiche sous sa tuile (--open). */}
+        <AnimatePresence mode="wait" initial={false}>
+          {open && (
+            <motion.div
+              key={open}
+              id="mtiles-panel"
+              className="mpanel"
+              style={{ "--open": tiles.findIndex((t) => t.key === open) } as CSSProperties}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: EASE }}
+            >
+              {panel(open)}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Le même tiroir que sur les cartes */}
       <AnimatePresence>

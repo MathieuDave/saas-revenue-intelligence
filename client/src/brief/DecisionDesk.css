@@ -646,15 +646,27 @@
     margin-top: 56px;
   }
 
-  /* Quatre boutons de même largeur, sur deux lignes */
+  /* L'action principale en haut, les autres côte à côte, « Not today » en simple lien */
   .dcard__actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
-  .dbtn {
+  .dcard__actions .dbtn {
+    flex: 1 1 0;
+    min-width: 0;
     padding: 0 12px;
     line-height: 1.2;
+  }
+
+  .dcard__actions .dbtn--primary {
+    flex-basis: 100%;
+    order: -1;
+  }
+
+  .dcard__actions .dbtn--quiet {
+    flex-basis: 100%;
+    order: 1;
+    min-height: 36px;
   }
 
   /* Les échéances sur une seule ligne, qu'on fait glisser du doigt */

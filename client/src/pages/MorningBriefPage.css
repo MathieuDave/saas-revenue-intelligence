@@ -191,8 +191,23 @@
 
 
 @media (max-width: 640px) {
+  /* Sur téléphone : le réalisé et l'objectif côte à côte, la prévision dessous sur toute la largeur */
   .goal__tiles {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .goal__tile {
+    padding: 12px 14px 10px;
+  }
+
+  .goal__tile:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .goal__num {
+    margin-top: 2px;
+    font-size: 24px;
   }
 }
 
