@@ -191,23 +191,54 @@
 
 
 @media (max-width: 640px) {
-  /* Sur téléphone : le réalisé et l'objectif côte à côte, la prévision dessous sur toute la largeur */
+  /* Sur téléphone : une seule carte en liste, le nom à gauche, le montant à droite.
+     La ligne du risque reste sous la prévision (à côté, jamais additionnée). */
   .goal__tiles {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    display: block;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 1px 2px rgba(19, 32, 59, 0.06);
   }
 
   .goal__tile {
-    padding: 12px 14px 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
-  .goal__tile:last-child {
-    grid-column: 1 / -1;
+  .goal__tile + .goal__tile {
+    border-top: 1px solid rgba(19, 32, 59, 0.08);
+  }
+
+  .goal__label {
+    grid-column: 1;
+    grid-row: 1;
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  .goal__note {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: 1px;
+    font-size: 12.5px;
   }
 
   .goal__num {
-    margin-top: 2px;
-    font-size: 24px;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0;
+    font-size: 22px;
+  }
+
+  .goal__risk {
+    grid-column: 1 / -1;
+    grid-row: 3;
   }
 }
 

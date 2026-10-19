@@ -126,3 +126,49 @@
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
+
+/* ---------- Téléphone : le titre et le ✕ sur une ligne, les pastilles en 2×2 ---------- */
+
+@media (max-width: 640px) {
+  .agents {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .agents__lead {
+    grid-column: 1 / -1;
+    padding: 4px 36px 2px 4px;
+    font-size: 13.5px;
+  }
+
+  .agents__item {
+    justify-content: center;
+    min-height: 30px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  .agents__close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    margin: 0;
+  }
+
+  /* La bulle reste dans l'écran : ancrée à droite pour la colonne de droite */
+  .agents__tip {
+    max-width: 240px;
+  }
+
+  .agents__item:nth-of-type(even) .agents__tip {
+    right: 0;
+    left: auto;
+  }
+}

@@ -643,6 +643,19 @@
   .mrow__meta {
     font-size: 12.5px;
   }
+
+  /* Le bouton du suivi passe sous la ligne : aligné sur le texte du compte,
+     avec de l'air avant le trait suivant */
+  .mrow-wrap {
+    gap: 0;
+    padding-bottom: 12px;
+  }
+
+  .mrow-wrap > .mback {
+    min-height: 30px;
+    margin-left: 86px;
+    font-size: 12.5px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
