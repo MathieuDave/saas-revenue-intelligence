@@ -8,7 +8,7 @@ Application « Morning Brief » pour un VP Revenue d'une entreprise SaaS. Chaque
 
 - **Projet portfolio** : il doit créer un effet « wow » en entrevue et servir à apprendre le backend.
 - **Les données sont synthétiques** et s'arrêtent au **31 août 2026**. Le brief de référence est celui d'août 2026.
-- La page principale est `/brief`. La V1 (tableau de bord) est gardée telle quelle comme « l'avant » : **on ne touche pas à son code**.
+- La page principale est `/brief` (l'adresse `/` y redirige). La V1 (tableau de bord) est gardée telle quelle comme « l'avant » : **on ne touche pas à son code**. Exceptions autorisées le 19 oct. 2026 : les adresses `/api`, la sécurité (`customers.ts`) et l'affichage téléphone (CSS seulement, l'ordinateur ne change pas). La page Overview de la V1 est à `/overview`.
 - Le Command Center a été supprimé le 7 oct. 2026 : ne pas le recréer.
 
 ## Le propriétaire
@@ -46,7 +46,8 @@ server/   Express 5 + TypeScript (tsx) + Databricks SQL
 - Tout le texte affiché est **généré à partir des données**, jamais écrit en dur pour un compte.
 
 ### Backend (`server/src/`)
-- `index.ts` : sépare les routes V1 et V2.
+- `app.ts` : construit l'app Express (connexion Databricks + routes V1 et V2) et l'exporte ; c'est l'entrée utilisée par Vercel.
+- `index.ts` : sur le PC seulement, ouvre le port 3000 et préchauffe l'entrepôt.
 - `routes/brief.ts` : `GET /api/brief` (agrégation de requêtes en parallèle, règles de répartition, `TEAM`, `lastDayOfMonth`).
 - `routes/decisions.ts` : `GET/POST/DELETE /api/decisions` (table `vp_decisions`).
 - `routes/followups.ts` : `GET /api/followups?month=` (décisions du mois précédent vs ce qui s'est passé). Résultat gardé en cache par mois ; `decisions.ts` l'oublie après chaque `POST`/`DELETE` réussi.
@@ -64,18 +65,29 @@ server/   Express 5 + TypeScript (tsx) + Databricks SQL
 | Git / PowerShell | racine | — | — |
 
 Si Vite démarre sur :5174, une ancienne instance occupe encore :5173.
-Frontend : `npm run build` (vérifie les types) et `npm run lint`. Le backend n'a pas de tests.
+Frontend : `npm run build` (vérifie les types) et `npm run lint` (10 erreurs connues, déjà là avant le 19 oct. 2026). Le backend n'a pas de tests ; `npx tsc --noEmit -p .` dans `server/` vérifie ses types.
 
 ## Databricks
 
 - Schéma : `workspace.saas_revenue_intelligence`. Tables clés : `gold_customer_monthly_health`, `gold_customer_signal_events`, `customers`, `support_tickets`, `vp_decisions`.
-- Authentification : profil CLI `dbc-34eda56e-c826`.
-- **« Connection expired » dans Investigate / Ask** (ligne `>>> Databricks session expired` dans le terminal du backend) : la session du CLI Databricks a expiré. `llm.ts` la reconnaît (`SessionExpiredError`). Corriger avec :
+- Authentification : si `DATABRICKS_TOKEN` (jeton personnel, PAT) est dans `server/.env`, il sert partout (`databricks.ts`, `llm.ts`, `genie.ts`). Sinon, profil CLI `dbc-34eda56e-c826`. Le jeton `vercel-morning-brief` a été créé le 19 oct. 2026 pour 90 jours.
+- **« Connection expired » dans Investigate / Ask** (ligne `>>> Databricks session expired` dans le terminal du backend), seulement sans jeton : la session du CLI Databricks a expiré. `llm.ts` la reconnaît (`SessionExpiredError`). Corriger avec :
   `databricks auth login --profile dbc-34eda56e-c826`
   puis réessayer. Pas besoin de redémarrer le backend.
 - Les requêtes sont **toujours paramétrées** (`:nom`), jamais de valeurs collées dans le SQL. Les identifiants du schéma viennent d'une constante.
 - Lenteur connue (mesurée le 9 oct. 2026) : le **premier appel** après une pause prend 17 à 27 s, car l'entrepôt SQL Databricks se réveille. Ensuite, chaque requête coûte environ 2 s (ouverture de session + requête). `/api/followups` est en cache : 0,01 s dès le 2e appel. Au démarrage, `index.ts` préchauffe l'entrepôt et le cache du suivi du mois de démo (« Warm-up done in … s ») : lancer le backend quelques minutes avant une démo, l'entrepôt se rendort après un moment sans requête. Piste : réutiliser la session.
 - La démo d'août a besoin de décisions en juillet (sinon la tuile « Since last month » est vide).
+
+## En ligne (Vercel)
+
+- Deux projets Vercel (forfait Hobby) sur le même dépôt GitHub, branche de production **`v2`** : chaque `git push origin v2` redéploie les deux.
+  - Backend : projet `saas-revenue-intelligence`, Root Directory `server`, preset Express → https://saas-revenue-intelligence.vercel.app (variables : `DATABRICKS_SERVER_HOSTNAME`, `DATABRICKS_HTTP_PATH`, `DATABRICKS_GENIE_AGENT_ID`, `DATABRICKS_TOKEN` ; pas de `DATABRICKS_CONFIG_PROFILE`).
+  - Frontend : projet `saas-revenue-intelligence-brief`, Root Directory `client`, preset Vite → **https://saas-revenue-intelligence-1z7m.vercel.app** (le lien à montrer).
+- `client/vercel.json` relaie `/api` vers le backend (comme le proxy de `vite.config.ts` sur le PC) et renvoie les autres adresses vers React. Le frontend appelle donc toujours `/api`, jamais `localhost`.
+- `server/package.json` force `uuid` 11 pour `thrift` (`overrides`) : avec `uuid` 13, le backend plantait au démarrage sur Vercel (`ERR_REQUIRE_ESM`, `FUNCTION_INVOCATION_FAILED`). Ne pas retirer.
+- Les journaux de Vercel sont restés vides pour ce projet. Pour voir une erreur de démarrage : déployer une copie de diagnostic en prévisualisation (privée) qui attrape l'erreur et l'affiche. `vercel build` ne marche pas en local sur Windows.
+- Pas de mot de passe (choix du 19 oct. 2026 : lien montré seulement en entrevue). Le dépôt GitHub est public. Avant une entrevue : ouvrir le brief pour réveiller l'entrepôt et vérifier les décisions. Pas de préchauffage automatique en ligne.
+- Tester sur téléphone sans déployer : `npx vite --host --port 5180` dans `client/`, puis ouvrir `http://<IP du PC>:5180/brief` sur le même Wi-Fi.
 
 ## Règles à ne pas casser
 
@@ -91,7 +103,7 @@ Frontend : `npm run build` (vérifie les types) et `npm run lint`. Le backend n'
 
 ## Direction visuelle
 
-Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul accent ambré `#d98e2b`. Polices : Schibsted Grotesk (interface) et Newsreader (la voix des agents). Deux colonnes : brief à gauche, panneau sombre des agents à droite. Interface en **anglais**.
+Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul accent ambré `#d98e2b`. Polices : Schibsted Grotesk (interface) et Newsreader (la voix des agents). Deux colonnes : brief à gauche, panneau sombre des agents à droite (une seule colonne sur téléphone). Interface en **anglais**.
 
 ## À faire plus tard
 
@@ -99,7 +111,8 @@ Dégradé clair `#dbe3f1` → `#f7f8fa`, texte bleu nuit `#13203b`, un seul acce
 - Page histoire `/story` (portable en CSS 3D, histoire d'Orion Analytics), construite après le peaufinage de l'app.
 - Polish de l'interface. Signaux de glissement lent et de réduction de contrat.
 - Nettoyer les composants orphelins : `SituationFeed.tsx`, `SignalFeed.tsx/.css`, `AgentInvestigation.tsx/.css`.
-- Corriger `customers.ts` (V1) avec des requêtes paramétrées. Mettre l'application en ligne.
+- Mot de passe sur le site (frontend **et** backend) si le lien est un jour partagé (CV, LinkedIn).
+- Après la période d'entrevues : supprimer le jeton Databricks `vercel-morning-brief`. Supprimer les 3 déploiements de diagnostic dans Vercel.
 
 ## Documents de référence
 
